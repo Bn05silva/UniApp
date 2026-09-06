@@ -1,34 +1,29 @@
 {
   "expo": {
-    "name": "ToDo",
-    "slug": "ToDo",
+    "name": "UniApp",
+    "slug": "uniapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icone.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icone.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "br.edu.univassouras"
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBJjy6lbgblXke9bJxdIsKI6H0ED0xbz1s"
+        }
+      }
     },
     "web": {
-      "favicon": "./assets/icone.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "15709e99-19e6-4fb5-8c7d-8c37f2c4c1e9"
-      }
+      "favicon": "./assets/favicon.png"
     }
   }
 }
