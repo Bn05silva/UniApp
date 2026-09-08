@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 
@@ -6,6 +6,9 @@ export default function LeitorCamera({ onScanned }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [ativo, Ativo] = useState(false);
+  
+
+  const bloqueioLeitura = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -15,9 +18,13 @@ export default function LeitorCamera({ onScanned }) {
   }, []);
 
   const handleBarCodeScanned = ({ data }) => {
+    if (bloqueioLeitura.current) return;
+    bloqueioLeitura.current = true;
     setScanned(true);
-    Ativo(false);
+    Ativo(false); 
+    
     Alert.alert('QR Code Lido!', `Conteúdo: ${data}`);
+    
     if (onScanned) {
       onScanned(data);
     }
@@ -33,7 +40,13 @@ export default function LeitorCamera({ onScanned }) {
   return (
     <View style={styles.container}>
       {!ativo ? (
-        <TouchableOpacity style={styles.botaoCamera} onPress={() => { setScanned(false); Ativo(true); }}>
+        <TouchableOpacity 
+          style={styles.botaoCamera} 
+          onPress={() => { 
+            bloqueioLeitura.current = false;
+            setScanned(false); 
+            Ativo(true); 
+          }}>
           <Text style={styles.textoBotao}>Escanear QR Code da Aula</Text>
         </TouchableOpacity>
       ) : (
@@ -52,41 +65,10 @@ export default function LeitorCamera({ onScanned }) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    marginBottom: 15, 
-    width: '100%' 
-  },
-  botaoCamera: {
-    backgroundColor: '#430c0c',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  textoBotao: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  cameraContainer: {
-    width: '100%',
-    height: 350,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-  },
-  botaoFechar: {
-    position: 'absolute',
-    bottom: 15,
-    alignSelf: 'center',
-    backgroundColor: '#c0392b',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    zIndex: 10,
-  },
-  textoBotaoFechar: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
+  container: { marginBottom: 15, width: '100%' },
+  botaoCamera: { backgroundColor: '#430c0c', padding: 12, borderRadius: 8, alignItems: 'center' },
+  textoBotao: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  cameraContainer: { width: '100%', height: 350, borderRadius: 8, overflow: 'hidden', backgroundColor: '#000' },
+  botaoFechar: { position: 'absolute', bottom: 15, alignSelf: 'center', backgroundColor: '#c0392b', paddingVertical: 8, paddingHorizontal: 20, borderRadius: 5, zIndex: 10 },
+  textoBotaoFechar: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
 });

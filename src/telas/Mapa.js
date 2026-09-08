@@ -33,11 +33,6 @@ export default function MapaScreen() {
         var marker = L.marker([lat, lon]).addTo(map);
         marker.bindPopup("<b>Universidade de Vassouras</b><br>Campus Principal").openPopup();
 
-        // Outros pontos do campus
-        L.marker([-22.4095, -43.6645]).addTo(map).bindPopup("<b>Sala 204</b><br>Projeto de Software");
-        L.marker([-22.4090, -43.6638]).addTo(map).bindPopup("<b>Biblioteca Central</b>");
-        L.marker([-22.4097, -43.6635]).addTo(map).bindPopup("<b>Laboratório de Informática</b>");
-        L.marker([-22.4088, -43.6643]).addTo(map).bindPopup("<b>Cantina</b>");
       </script>
     </body>
     </html>
@@ -56,6 +51,6 @@ export default function MapaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#edf1f4' },
+  container: { flex: 1, backgroundColor: '#ffffff' },
   map: { flex: 1 },
 });

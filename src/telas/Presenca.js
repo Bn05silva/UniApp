@@ -10,8 +10,8 @@ import Localizacao from '../gps';
 import LeitorCamera from '../camera';
 
 // Coordenadas da Universidade 
-const FACULDADE_LAT = -22.4093;
-const FACULDADE_LONG = -43.6641;
+const FACULDADE_LAT = -22.5176;
+const FACULDADE_LONG = -43.7020;
 const RAIO_PERMITIDO_METROS = 150; 
 
 
@@ -65,7 +65,7 @@ export default function PresencaScreen() {
 
     if (distancia > RAIO_PERMITIDO_METROS) {
       Alert.alert(
-        'Fora do Campus ❌', 
+        'Fora do Campus', 
         `Você está a ${Math.round(distancia)} metros da faculdade. Presença negada!`
       );
       return;
@@ -79,7 +79,7 @@ export default function PresencaScreen() {
 
     saveToAsyncStorage([novoRegistro, ...listItems]);
     setQrCodeData(null);
-    Alert.alert('Sucesso ✅', 'Presença validada no campus!');
+    Alert.alert('Sucesso', 'Presença validada no campus!');
   };
 
   const deleteItem = (id) => {
