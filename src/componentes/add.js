@@ -1,25 +1,30 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddItem({ addItem }) {
   const [text, setText] = useState('');
 
-  const handlePress = () => {
-    addItem(text);
-    setText('');
+  const handlePress = async () => {
+    const registrado = await addItem(text);
+
+    if (registrado) {
+      setText('');
+    }
   };
 
   return (
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Nome / Matricula"
+        placeholder="Nome / Matrícula"
         placeholderTextColor="#888"
         value={text}
         onChangeText={setText}
+        autoCapitalize="words"
       />
+
       <TouchableOpacity style={styles.button} onPress={handlePress}>
-        <Text style={styles.buttonText}>Registrar Presença</Text>
+        <Text style={styles.buttonText}>Confirmar Presença</Text>
       </TouchableOpacity>
     </View>
   );

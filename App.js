@@ -40,7 +40,7 @@ export default function App() {
         })}
       >
         <Tab.Screen name="Início" children={() => <TelaVazia titulo="Área do Aluno (Em breve)" />} />
-        <Tab.Screen name="Presença" component={PresencaScreen} options={{ title: 'Registar presença' }} />
+        <Tab.Screen name="Presença" component={PresencaScreen} options={{ title: 'Registrar presença' }} />
         <Tab.Screen name="Mapa" component={MapaScreen} options={{ title: 'Mapa do Campus' }} />
         <Tab.Screen name="Perfil" children={() => <TelaVazia titulo="Perfil do Aluno" />} />
       </Tab.Navigator>

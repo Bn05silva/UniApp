@@ -53,6 +53,7 @@ export default function LeitorCamera({ onScanned }) {
         <View style={styles.cameraContainer}>
           <CameraView
             onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
             style={{ flex: 1, width: '100%' }}
           />
           <TouchableOpacity style={styles.botaoFechar} onPress={() => Ativo(false)}>

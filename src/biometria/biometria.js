@@ -22,7 +22,7 @@ export default function Biometria({ onAutenticado }) {
       });
 
     if (result.success) {
-        Alert.alert('Presença Registrada', 'Sua biometria foi confirmada com sucesso!');
+        Alert.alert('Biometria confirmada', 'Autenticação realizada com sucesso!');
         
         if (onAutenticado) onAutenticado();
       } else {
@@ -36,7 +36,7 @@ export default function Biometria({ onAutenticado }) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.botaoBiometria} onPress={handleAuthentication}>
-        <Text style={styles.textoBotao}>Registrar Presença</Text>
+        <Text style={styles.textoBotao}>Validar Biometria</Text>
       </TouchableOpacity>
     </View>
   );

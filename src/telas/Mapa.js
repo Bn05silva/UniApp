@@ -1,56 +1,81 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import * as Location from 'expo-location';
+import MapView, { Marker } from 'react-native-maps';
+
+// Mesmo ponto utilizado na validação de presença.
+const FACULDADE = {
+  latitude: -22.40944,
+  longitude: -43.66326,
+};
 
 export default function MapaScreen() {
-  const mapHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-      <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-        #map { width: 100%; height: 100%; }
-      </style>
-    </head>
-    <body>
-      <div id="map"></div>
-      <script>
-        // Coordenadas da Universidade de Vassouras
-        var lat = -22.4093;
-        var lon = -43.6641;
+  const [localizacaoAtual, setLocalizacaoAtual] = useState(null);
 
-        var map = L.map('map').setView([lat, lon], 17);
+  useEffect(() => {
+    obterLocalizacao();
+  }, []);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+  const obterLocalizacao = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-        // Marcador principal da Universidade
-        var marker = L.marker([lat, lon]).addTo(map);
-        marker.bindPopup("<b>Universidade de Vassouras</b><br>Campus Principal").openPopup();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permissão negada',
+          'A localização é necessária para mostrar sua posição no mapa.'
+        );
+        return;
+      }
 
-      </script>
-    </body>
-    </html>
-  `;
+      const location = await Location.getCurrentPositionAsync({});
+      setLocalizacaoAtual(location.coords);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível obter sua localização atual.');
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <WebView 
-        source={{ html: mapHtml }} 
-        style={styles.map} 
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-      />
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: FACULDADE.latitude,
+          longitude: FACULDADE.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }}
+        showsUserLocation
+        showsMyLocationButton
+      >
+        <Marker
+          coordinate={FACULDADE}
+          title="Universidade de Vassouras"
+          description="Campus Vassouras"
+        />
+
+        {localizacaoAtual && (
+          <Marker
+            coordinate={{
+              latitude: localizacaoAtual.latitude,
+              longitude: localizacaoAtual.longitude,
+            }}
+            title="Minha localização"
+            description="Posição atual obtida pelo GPS"
+            pinColor="blue"
+          />
+        )}
+      </MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
-  map: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  map: {
+    flex: 1,
+  },
 });
