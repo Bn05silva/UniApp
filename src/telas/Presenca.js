@@ -13,7 +13,7 @@ const FACULDADE_LAT = -22.40944;
 const FACULDADE_LONG = -43.66326;
 
 // Valor oficial 150
-const RAIO_PERMITIDO_METROS = 50000;
+const RAIO_PERMITIDO_METROS = 150;
 
 const STORAGE_KEY = '@uniapp_presencas';
 
