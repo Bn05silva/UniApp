@@ -1,35 +1,12 @@
 import React from 'react';
-import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
+import InicioScreen from './src/telas/Inicio';
 import PresencaScreen from './src/telas/Presenca';
 import MapaScreen from './src/telas/Mapa';
 import PerfilScreen from './src/telas/Perfil';
-
-function TelaVazia({ titulo }) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#edf1f4',
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 20,
-          color: '#a2181c',
-          fontWeight: 'bold',
-        }}
-      >
-        {titulo}
-      </Text>
-    </View>
-  );
-}
 
 const Tab = createBottomTabNavigator();
 
@@ -79,9 +56,10 @@ export default function App() {
       >
         <Tab.Screen
           name="Início"
-          children={() => (
-            <TelaVazia titulo="Área do Aluno (Em breve)" />
-          )}
+          component={InicioScreen}
+          options={{
+            title: 'Área do Aluno',
+          }}
         />
 
         <Tab.Screen
