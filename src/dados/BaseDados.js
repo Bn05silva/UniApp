@@ -3,8 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_KEY = '@uniapp_base';
 
 // Dados de demonstração para o protótipo.
-// Senhas em texto puro apenas nesta versão do trabalho (tudo local, sem servidor).
-// Ao alterar esta base, aumente "versao" para ela ser recriada no aparelho.
+// Senhas em texto puro apenas nesta versão do trabalho,
+// pois tudo funciona localmente e sem servidor.
+//
+// Quando for necessário recriar a base no aparelho,
+// aumente o número da versão.
 const BASE_INICIAL = {
   versao: 1,
 
@@ -43,13 +46,22 @@ const BASE_INICIAL = {
   ],
 
   disciplinas: [
-    { id: 'ES01', nome: 'Engenharia de Software' },
-    { id: 'BD01', nome: 'Banco de Dados' },
-    { id: 'RC01', nome: 'Redes de Computadores' },
+    {
+      id: 'ES01',
+      nome: 'Engenharia de Software',
+    },
+    {
+      id: 'BD01',
+      nome: 'Banco de Dados',
+    },
+    {
+      id: 'RC01',
+      nome: 'Redes de Computadores',
+    },
   ],
 
-  // O professor não cria disciplina: a turma já nasce vinculada a ele.
-  // Ele só ajusta dia, horário e sala.
+  // As disciplinas já ficam vinculadas aos professores.
+  // O professor apenas gerencia informações da turma.
   turmas: [
     {
       id: 'T-ES01',
@@ -78,12 +90,29 @@ const BASE_INICIAL = {
   ],
 
   matriculas: [
-    { matricula: '202312084', turmaId: 'T-ES01' },
-    { matricula: '202312084', turmaId: 'T-BD01' },
-    { matricula: '202312090', turmaId: 'T-BD01' },
-    { matricula: '202312090', turmaId: 'T-RC01' },
+    {
+      matricula: '202312084',
+      turmaId: 'T-ES01',
+    },
+    {
+      matricula: '202312084',
+      turmaId: 'T-BD01',
+    },
+    {
+      matricula: '202312090',
+      turmaId: 'T-BD01',
+    },
+    {
+      matricula: '202312090',
+      turmaId: 'T-RC01',
+    },
   ],
 };
+
+
+// ======================================================
+// CARREGAR BASE
+// ======================================================
 
 export async function carregarBase() {
   try {
@@ -97,7 +126,10 @@ export async function carregarBase() {
       }
     }
 
-    await AsyncStorage.setItem(BASE_KEY, JSON.stringify(BASE_INICIAL));
+    await AsyncStorage.setItem(
+      BASE_KEY,
+      JSON.stringify(BASE_INICIAL)
+    );
   } catch (error) {
     console.log('Erro ao carregar a base de dados.');
   }
@@ -105,34 +137,155 @@ export async function carregarBase() {
   return BASE_INICIAL;
 }
 
+
+// ======================================================
+// SALVAR BASE
+// ======================================================
+
 export async function salvarBase(base) {
   try {
-    await AsyncStorage.setItem(BASE_KEY, JSON.stringify(base));
+    await AsyncStorage.setItem(
+      BASE_KEY,
+      JSON.stringify(base)
+    );
+
     return true;
   } catch (error) {
+    console.log('Erro ao salvar a base de dados.');
+
     return false;
   }
 }
 
-// tipo: 'aluno' (matrícula) ou 'professor' (identificador).
-// Retorna o usuário sem a senha, ou null se os dados não conferirem.
-export async function autenticar(tipo, identificador, senha) {
+
+// ======================================================
+// AUTENTICAR USUÁRIO
+// ======================================================
+
+// tipo:
+// 'aluno'
+// 'professor'
+//
+// Retorna o usuário sem a senha se os dados estiverem
+// corretos. Caso contrário retorna null.
+
+export async function autenticar(
+  tipo,
+  identificador,
+  senha
+) {
   const base = await carregarBase();
 
-  const lista = tipo === 'professor' ? base.professores : base.alunos;
-  const campo = tipo === 'professor' ? 'identificador' : 'matricula';
+  const lista =
+    tipo === 'professor'
+      ? base.professores
+      : base.alunos;
 
-  const procurado = identificador.trim().toLowerCase();
+  const campo =
+    tipo === 'professor'
+      ? 'identificador'
+      : 'matricula';
+
+  const procurado = identificador
+    .trim()
+    .toLowerCase();
 
   const usuario = lista.find(
-    (u) => u[campo].toLowerCase() === procurado && u.senha === senha
+    (u) =>
+      u[campo].toLowerCase() === procurado &&
+      u.senha === senha
   );
 
   if (!usuario) {
     return null;
   }
 
-  const { senha: _senha, ...semSenha } = usuario;
+  const {
+    senha: _senha,
+    ...usuarioSemSenha
+  } = usuario;
 
-  return semSenha;
+  return usuarioSemSenha;
+}
+
+
+// ======================================================
+// ALTERAR SENHA
+// ======================================================
+
+export async function alterarSenhaUsuario(
+  tipo,
+  identificador,
+  senhaAtual,
+  novaSenha
+) {
+  try {
+    const base = await carregarBase();
+
+    const lista =
+      tipo === 'professor'
+        ? base.professores
+        : base.alunos;
+
+    const campo =
+      tipo === 'professor'
+        ? 'identificador'
+        : 'matricula';
+
+    const procurado = identificador
+      .trim()
+      .toLowerCase();
+
+    const indice = lista.findIndex(
+      (usuario) =>
+        usuario[campo].toLowerCase() === procurado
+    );
+
+    if (indice === -1) {
+      return {
+        ok: false,
+        erro: 'Usuário não encontrado.',
+      };
+    }
+
+    // Confere a senha usada atualmente
+    if (lista[indice].senha !== senhaAtual) {
+      return {
+        ok: false,
+        erro: 'A senha atual está incorreta.',
+      };
+    }
+
+    // Evita colocar a mesma senha novamente
+    if (senhaAtual === novaSenha) {
+      return {
+        ok: false,
+        erro:
+          'A nova senha deve ser diferente da senha atual.',
+      };
+    }
+
+    // Altera a senha dentro da base
+    lista[indice].senha = novaSenha;
+
+    const salvo = await salvarBase(base);
+
+    if (!salvo) {
+      return {
+        ok: false,
+        erro:
+          'Não foi possível salvar a nova senha.',
+      };
+    }
+
+    return {
+      ok: true,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      erro:
+        'Ocorreu um erro ao alterar a senha.',
+    };
+  }
 }

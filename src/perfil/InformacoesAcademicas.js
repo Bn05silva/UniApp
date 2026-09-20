@@ -1,10 +1,12 @@
 import React from 'react';
+
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
 
 function ItemInformacao({
@@ -32,7 +34,6 @@ function ItemInformacao({
 
 export default function InformacoesAcademicas({
   perfil,
-  onEditar,
   onAlterarSenha,
 }) {
   return (
@@ -41,12 +42,6 @@ export default function InformacoesAcademicas({
         <Text style={styles.titulo}>
           Informações acadêmicas
         </Text>
-
-        <TouchableOpacity onPress={onEditar}>
-          <Text style={styles.editar}>
-            Editar
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -103,9 +98,6 @@ const styles = StyleSheet.create({
   },
 
   cabecalho: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 12,
   },
 
@@ -115,17 +107,19 @@ const styles = StyleSheet.create({
     color: '#222',
   },
 
-  editar: {
-    color: '#a2181c',
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
     paddingHorizontal: 16,
     elevation: 1,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
   },
 
   item: {
@@ -162,6 +156,16 @@ const styles = StyleSheet.create({
 
     borderWidth: 1,
     borderColor: '#ddd',
+
+    elevation: 1,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
   },
 
   textoSenha: {

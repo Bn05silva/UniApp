@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   Alert,
   ScrollView,
@@ -10,7 +11,9 @@ import * as ImagePicker from 'expo-image-picker';
 
 import PerfilHeader from '../perfil/PerfilHeader';
 import InformacoesAcademicas from '../perfil/InformacoesAcademicas';
-import EditarPerfilModal from '../perfil/EditarPerfilModal';
+import AlterarSenhaModal from '../perfil/AlterarSenhaModal';
+
+import { useAuth } from '../contexto/AuthContext';
 
 const STORAGE_KEY = '@uniapp_perfil';
 
@@ -24,8 +27,13 @@ const PERFIL_INICIAL = {
 };
 
 export default function PerfilScreen() {
-  const [perfil, setPerfil] = useState(PERFIL_INICIAL);
-  const [modalEditar, setModalEditar] = useState(false);
+  const [perfil, setPerfil] =
+    useState(PERFIL_INICIAL);
+
+  const [modalSenha, setModalSenha] =
+    useState(false);
+
+  const { trocarSenha } = useAuth();
 
   useEffect(() => {
     carregarPerfil();
@@ -33,10 +41,15 @@ export default function PerfilScreen() {
 
   const carregarPerfil = async () => {
     try {
-      const dados = await AsyncStorage.getItem(STORAGE_KEY);
+      const dados =
+        await AsyncStorage.getItem(
+          STORAGE_KEY
+        );
 
       if (dados) {
-        setPerfil(JSON.parse(dados));
+        setPerfil(
+          JSON.parse(dados)
+        );
       }
     } catch (error) {
       Alert.alert(
@@ -46,97 +59,88 @@ export default function PerfilScreen() {
     }
   };
 
-  const salvarPerfil = async (novoPerfil) => {
+
+  const alterarFoto = async () => {
     try {
+      const permissao =
+        await ImagePicker
+          .requestMediaLibraryPermissionsAsync();
+
+      if (!permissao.granted) {
+        Alert.alert(
+          'Permissão necessária',
+          'Autorize o acesso à galeria para alterar sua foto.'
+        );
+
+        return;
+      }
+
+      const resultado =
+        await ImagePicker
+          .launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+
+      if (resultado.canceled) {
+        return;
+      }
+
+      const novoPerfil = {
+        ...perfil,
+        foto:
+          resultado.assets[0].uri,
+      };
+
       await AsyncStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(novoPerfil)
       );
 
       setPerfil(novoPerfil);
-      setModalEditar(false);
 
-      Alert.alert(
-        'Sucesso',
-        'Perfil atualizado com sucesso!'
-      );
     } catch (error) {
       Alert.alert(
         'Erro',
-        'Não foi possível salvar o perfil.'
+        'Não foi possível alterar a foto.'
       );
     }
   };
 
-  const alterarFoto = async () => {
-    const permissao =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permissao.granted) {
-      Alert.alert(
-        'Permissão necessária',
-        'Autorize o acesso à galeria para alterar sua foto.'
-      );
-
-      return;
-    }
-
+  const alterarSenha = async (
+    senhaAtual,
+    novaSenha
+  ) => {
     const resultado =
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
+      await trocarSenha(
+        senhaAtual,
+        novaSenha
+      );
 
-    if (!resultado.canceled) {
-      const novoPerfil = {
-        ...perfil,
-        foto: resultado.assets[0].uri,
-      };
-
-      await salvarPerfil(novoPerfil);
+    if (resultado.ok) {
+      Alert.alert(
+        'Sucesso',
+        'Senha alterada com sucesso.'
+      );
     }
+
+    return resultado;
   };
 
-  const alterarSenha = () => {
-    Alert.prompt(
-      'Alterar senha',
-      'Digite uma nova senha.',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Alterar',
-          onPress: (senha) => {
-            if (!senha || senha.length < 6) {
-              Alert.alert(
-                'Senha inválida',
-                'A senha deve possuir pelo menos 6 caracteres.'
-              );
-
-              return;
-            }
-
-            Alert.alert(
-              'Sucesso',
-              'Senha alterada para fins demonstrativos.'
-            );
-          },
-        },
-      ],
-      'secure-text'
-    );
-  };
 
   return (
     <>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.conteudo}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          styles.conteudo
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
       >
         <PerfilHeader
           perfil={perfil}
@@ -145,20 +149,23 @@ export default function PerfilScreen() {
 
         <InformacoesAcademicas
           perfil={perfil}
-          onEditar={() => setModalEditar(true)}
-          onAlterarSenha={alterarSenha}
+          onAlterarSenha={() =>
+            setModalSenha(true)
+          }
         />
       </ScrollView>
 
-      <EditarPerfilModal
-        visible={modalEditar}
-        perfil={perfil}
-        onClose={() => setModalEditar(false)}
-        onSalvar={salvarPerfil}
+      <AlterarSenhaModal
+        visible={modalSenha}
+        onClose={() =>
+          setModalSenha(false)
+        }
+        onSalvar={alterarSenha}
       />
     </>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

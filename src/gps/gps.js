@@ -1,55 +1,45 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import * as Location from 'expo-location';
 
-export default function Localizacao({ onLocalizacaoObtida }) {
-  const [statusGPS, setStatusGPS] = useState('Verificar Localização');
+// ======================================================
+// OBTER LOCALIZAÇÃO ATUAL
+// ======================================================
 
-  const obterLocalizacao = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Permissão de acesso à localização é necessária.');
-        return;
-      }
+export async function obterLocalizacaoAtual() {
+  try {
+    const { status } =
+      await Location.requestForegroundPermissionsAsync();
 
-      let location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      
-      setStatusGPS(`Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}`);
-      Alert.alert('Localização obtida', `Latitude: ${latitude}\nLongitude: ${longitude}`);
-      
-      if (onLocalizacaoObtida) {
-        onLocalizacaoObtida({ latitude, longitude });
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+    if (status !== 'granted') {
+      return {
+        ok: false,
+        erro:
+          'A permissão de localização é necessária para registrar presença.',
+      };
     }
-  };
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.botaoGPS} onPress={obterLocalizacao}>
-        <Text style={styles.textoBotao}>{statusGPS}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    const location =
+      await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+    const {
+      latitude,
+      longitude,
+    } = location.coords;
+
+    return {
+      ok: true,
+
+      coords: {
+        latitude,
+        longitude,
+      },
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      erro:
+        'Não foi possível obter sua localização atual.',
+    };
+  }
 }
-
-const styles = StyleSheet.create({
-  container: { 
-    marginBottom: 15, 
-    width: '100%' 
-  },
-  botaoGPS: {
-    backgroundColor: '#430c0c',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  textoBotao: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-});
