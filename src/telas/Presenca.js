@@ -10,10 +10,14 @@ import {
   View,
 } from 'react-native';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage
+  from '@react-native-async-storage/async-storage';
 
-import LeitorCamera from '../camera/camera';
-import ListItem from '../componentes/list';
+import LeitorCamera
+  from '../camera/camera';
+
+import ListItem
+  from '../componentes/list';
 
 import {
   obterLocalizacaoAtual,
@@ -32,10 +36,14 @@ import {
 // CONFIGURAÇÕES
 // ======================================================
 
-const FACULDADE_LAT = -22.40944;
-const FACULDADE_LONG = -43.66326;
+const FACULDADE_LAT =
+  -22.40944;
 
-const RAIO_PERMITIDO_METROS = 150;
+const FACULDADE_LONG =
+  -43.66326;
+
+const RAIO_PERMITIDO_METROS =
+  150;
 
 const STORAGE_KEY =
   '@uniapp_presencas';
@@ -54,21 +62,25 @@ function calcularDistancia(
   const R = 6371e3;
 
   const dLat =
-    ((lat2 - lat1) * Math.PI) /
+    ((lat2 - lat1) *
+      Math.PI) /
     180;
 
   const dLon =
-    ((lon2 - lon1) * Math.PI) /
+    ((lon2 - lon1) *
+      Math.PI) /
     180;
 
   const a =
     Math.sin(dLat / 2) *
       Math.sin(dLat / 2) +
     Math.cos(
-      (lat1 * Math.PI) / 180
+      (lat1 * Math.PI) /
+        180
     ) *
       Math.cos(
-        (lat2 * Math.PI) / 180
+        (lat2 * Math.PI) /
+          180
       ) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
@@ -89,7 +101,8 @@ function calcularDistancia(
 // ======================================================
 
 function obterDataISO() {
-  const agora = new Date();
+  const agora =
+    new Date();
 
   const ano =
     agora.getFullYear();
@@ -143,23 +156,36 @@ export default function PresencaScreen() {
 
   const carregarPresencas =
     async () => {
+
       try {
+
         const dados =
           await AsyncStorage.getItem(
             STORAGE_KEY
           );
 
+
         if (dados) {
+
           setListItems(
             JSON.parse(dados)
           );
+
+        } else {
+
+          setListItems([]);
+
         }
+
       } catch (error) {
+
         setUltimaMensagem({
           tipo: 'erro',
+
           texto:
             'Não foi possível carregar o histórico de presenças.',
         });
+
       }
     };
 
@@ -170,23 +196,33 @@ export default function PresencaScreen() {
 
   const salvarPresencas =
     async (novaLista) => {
+
       try {
+
         await AsyncStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify(novaLista)
+          JSON.stringify(
+            novaLista
+          )
         );
+
 
         setListItems(
           novaLista
         );
 
+
         return true;
+
       } catch (error) {
+
         setUltimaMensagem({
           tipo: 'erro',
+
           texto:
             'Não foi possível salvar a presença.',
         });
+
 
         return false;
       }
@@ -199,13 +235,20 @@ export default function PresencaScreen() {
 
   const processarQRCode =
     async (conteudoQR) => {
+
       if (validando) {
         return;
       }
 
-      setValidando(true);
 
-      setUltimaMensagem(null);
+      setValidando(
+        true
+      );
+
+      setUltimaMensagem(
+        null
+      );
+
 
       try {
 
@@ -215,8 +258,10 @@ export default function PresencaScreen() {
 
         if (
           !usuario ||
-          usuario.tipo !== 'aluno'
+          usuario.tipo !==
+            'aluno'
         ) {
+
           throw new Error(
             'Somente alunos podem registrar presença.'
           );
@@ -229,10 +274,16 @@ export default function PresencaScreen() {
 
         let dadosQR;
 
+
         try {
+
           dadosQR =
-            JSON.parse(conteudoQR);
+            JSON.parse(
+              conteudoQR
+            );
+
         } catch (error) {
+
           throw new Error(
             'QR Code inválido. Leia o código exibido pelo professor.'
           );
@@ -247,6 +298,7 @@ export default function PresencaScreen() {
           dadosQR.tipo !==
           'presenca'
         ) {
+
           throw new Error(
             'QR Code inválido. Leia o código exibido pelo professor.'
           );
@@ -254,17 +306,81 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // VALIDAR TURMA
+        // VALIDAR CAMPOS DO QR
         // ================================================
 
-        if (!dadosQR.turmaId) {
+        if (
+          !dadosQR.turmaId ||
+          !dadosQR.professorId ||
+          !dadosQR.sessao
+        ) {
+
           throw new Error(
-            'Não foi possível identificar a turma deste QR Code.'
+            'Este QR Code não possui os dados necessários para registrar presença.'
           );
         }
 
+
+        // ================================================
+        // VALIDAR EXPIRAÇÃO
+        // ================================================
+
+        if (
+          typeof dadosQR.expiraEm !==
+          'number'
+        ) {
+
+          throw new Error(
+            'Este QR Code não possui uma validade definida.'
+          );
+        }
+
+
+        const agora =
+          Date.now();
+
+
+        if (
+          agora >
+          dadosQR.expiraEm
+        ) {
+
+          throw new Error(
+            'Este QR Code expirou. Solicite ao professor um novo código.'
+          );
+        }
+
+
+        // ================================================
+        // VALIDAR DATA
+        // ================================================
+
+        const dataHoje =
+          obterDataISO();
+
+
+        if (
+          dadosQR.data !==
+          dataHoje
+        ) {
+
+          throw new Error(
+            'Este QR Code não corresponde à aula de hoje.'
+          );
+        }
+
+
+        // ================================================
+        // CARREGAR BASE
+        // ================================================
+
         const base =
           await carregarBase();
+
+
+        // ================================================
+        // VALIDAR TURMA
+        // ================================================
 
         const turma =
           base.turmas.find(
@@ -273,7 +389,9 @@ export default function PresencaScreen() {
               dadosQR.turmaId
           );
 
+
         if (!turma) {
+
           throw new Error(
             'Esta turma não foi encontrada.'
           );
@@ -293,7 +411,9 @@ export default function PresencaScreen() {
                 turma.id
           );
 
+
         if (!matriculado) {
+
           throw new Error(
             'Você não está matriculado nesta turma.'
           );
@@ -301,14 +421,14 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // PROFESSOR
+        // PROFESSOR CORRESPONDE À TURMA?
         // ================================================
 
         if (
-          dadosQR.professorId &&
           dadosQR.professorId !==
-            turma.professorId
+          turma.professorId
         ) {
+
           throw new Error(
             'Este QR Code não corresponde ao professor da turma.'
           );
@@ -316,18 +436,23 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // DATA
+        // EVITAR PRESENÇA DUPLICADA
         // ================================================
 
-        const dataHoje =
-          obterDataISO();
+        const jaRegistrada =
+          listItems.some(
+            (item) =>
+              item.sessao ===
+                dadosQR.sessao &&
+              item.matricula ===
+                usuario.matricula
+          );
 
-        if (
-          dadosQR.data &&
-          dadosQR.data !== dataHoje
-        ) {
+
+        if (jaRegistrada) {
+
           throw new Error(
-            'Este QR Code não corresponde à aula de hoje.'
+            'Sua presença nesta aula já foi registrada.'
           );
         }
 
@@ -339,7 +464,9 @@ export default function PresencaScreen() {
         const localizacao =
           await obterLocalizacaoAtual();
 
+
         if (!localizacao.ok) {
+
           throw new Error(
             localizacao.erro
           );
@@ -352,21 +479,27 @@ export default function PresencaScreen() {
 
         const distancia =
           calcularDistancia(
-            localizacao.coords.latitude,
-            localizacao.coords.longitude,
+            localizacao.coords
+              .latitude,
+
+            localizacao.coords
+              .longitude,
+
             FACULDADE_LAT,
+
             FACULDADE_LONG
           );
 
 
         // ================================================
-        // RAIO 150 M
+        // RAIO DE 150 METROS
         // ================================================
 
         if (
           distancia >
           RAIO_PERMITIDO_METROS
         ) {
+
           throw new Error(
             `Presença não permitida. Você está a ${Math.round(
               distancia
@@ -386,7 +519,9 @@ export default function PresencaScreen() {
               turma.disciplinaId
           );
 
+
         if (!disciplina) {
+
           throw new Error(
             'Não foi possível identificar a disciplina.'
           );
@@ -406,65 +541,43 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // SESSÃO
-        // ================================================
-
-        const sessao =
-          dadosQR.sessao ||
-          `${turma.id}-${dataHoje}`;
-
-
-        // ================================================
-        // EVITAR PRESENÇA DUPLICADA
-        // ================================================
-
-        const jaRegistrada =
-          listItems.some(
-            (item) =>
-              item.sessao ===
-                sessao &&
-              item.matricula ===
-                usuario.matricula
-          );
-
-        if (jaRegistrada) {
-          throw new Error(
-            'Sua presença nesta aula já foi registrada.'
-          );
-        }
-
-
-        // ================================================
         // DATA E HORA
         // ================================================
 
-        const agora =
+        const agoraData =
           new Date();
 
+
         const dataAtual =
-          agora.toLocaleDateString(
+          agoraData.toLocaleDateString(
             'pt-BR'
           );
 
+
         const horaAtual =
-          agora.toLocaleTimeString(
+          agoraData.toLocaleTimeString(
             'pt-BR',
             {
-              hour: '2-digit',
-              minute: '2-digit',
+              hour:
+                '2-digit',
+
+              minute:
+                '2-digit',
             }
           );
 
 
         // ================================================
-        // REGISTRO
+        // CRIAR REGISTRO
         // ================================================
 
         const novoRegistro = {
+
           id:
             Date.now().toString(),
 
-          sessao,
+          sessao:
+            dadosQR.sessao,
 
           aluno:
             usuario.nome,
@@ -513,6 +626,9 @@ export default function PresencaScreen() {
 
           hora:
             horaAtual,
+
+          registradoEm:
+            Date.now(),
         };
 
 
@@ -525,10 +641,12 @@ export default function PresencaScreen() {
           ...listItems,
         ];
 
+
         const salvo =
           await salvarPresencas(
             novaLista
           );
+
 
         if (!salvo) {
           return;
@@ -536,27 +654,36 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // RETORNO NA PRÓPRIA TELA
+        // SUCESSO NA PRÓPRIA TELA
         // ================================================
 
         setUltimaMensagem({
-          tipo: 'sucesso',
+
+          tipo:
+            'sucesso',
 
           texto:
             `Presença confirmada em ${disciplina.nome} às ${horaAtual}.`,
+
         });
 
       } catch (error) {
 
         setUltimaMensagem({
-          tipo: 'erro',
+
+          tipo:
+            'erro',
+
           texto:
             error.message,
+
         });
 
       } finally {
 
-        setValidando(false);
+        setValidando(
+          false
+        );
       }
     };
 
@@ -566,31 +693,71 @@ export default function PresencaScreen() {
   // ====================================================
 
   return (
-    <View style={styles.container}>
+    <View
+      style={
+        styles.container
+      }
+    >
 
-      <View style={styles.cardInformacao}>
+      {/* ============================================== */}
+      {/* INFORMAÇÕES */}
+      {/* ============================================== */}
 
-        <Text style={styles.titulo}>
+      <View
+        style={
+          styles.cardInformacao
+        }
+      >
+
+        <Text
+          style={
+            styles.titulo
+          }
+        >
           Registrar presença
         </Text>
 
-        <Text style={styles.descricao}>
+
+        <Text
+          style={
+            styles.descricao
+          }
+        >
           Leia o QR Code exibido pelo professor.
           Sua localização será verificada automaticamente
           no momento da leitura.
         </Text>
 
-        <View style={styles.alunoContainer}>
 
-          <Text style={styles.alunoLabel}>
+        <View
+          style={
+            styles.alunoContainer
+          }
+        >
+
+          <Text
+            style={
+              styles.alunoLabel
+            }
+          >
             Aluno
           </Text>
 
-          <Text style={styles.alunoNome}>
+
+          <Text
+            style={
+              styles.alunoNome
+            }
+          >
             {usuario?.nome}
           </Text>
 
-          <Text style={styles.matricula}>
+
+          <Text
+            style={
+              styles.matricula
+            }
+          >
             Matrícula {usuario?.matricula}
           </Text>
 
@@ -599,29 +766,57 @@ export default function PresencaScreen() {
       </View>
 
 
+      {/* ============================================== */}
+      {/* CÂMERA */}
+      {/* ============================================== */}
+
       <LeitorCamera
-        onScanned={processarQRCode}
-        bloqueado={validando}
+        onScanned={
+          processarQRCode
+        }
+        bloqueado={
+          validando
+        }
       />
 
 
+      {/* ============================================== */}
+      {/* VALIDANDO */}
+      {/* ============================================== */}
+
       {validando && (
-        <View style={styles.validando}>
+
+        <View
+          style={
+            styles.validando
+          }
+        >
 
           <ActivityIndicator
             size="small"
             color="#a2181c"
           />
 
-          <Text style={styles.textoValidando}>
+
+          <Text
+            style={
+              styles.textoValidando
+            }
+          >
             Verificando QR Code e localização...
           </Text>
 
         </View>
+
       )}
 
 
+      {/* ============================================== */}
+      {/* RESULTADO */}
+      {/* ============================================== */}
+
       {ultimaMensagem && (
+
         <View
           style={[
             styles.mensagem,
@@ -632,6 +827,7 @@ export default function PresencaScreen() {
               : styles.mensagemErro,
           ]}
         >
+
           <Text
             style={[
               styles.textoMensagem,
@@ -644,12 +840,20 @@ export default function PresencaScreen() {
           >
             {ultimaMensagem.texto}
           </Text>
+
         </View>
+
       )}
 
 
+      {/* ============================================== */}
+      {/* HISTÓRICO */}
+      {/* ============================================== */}
+
       <ListItem
-        listItems={listItems}
+        listItems={
+          listItems
+        }
       />
 
     </View>
@@ -663,24 +867,32 @@ export default function PresencaScreen() {
 
 const styles =
   StyleSheet.create({
+
     container: {
       flex: 1,
+
       backgroundColor:
         '#edf1f4',
+
       padding: 20,
     },
+
 
     cardInformacao: {
       backgroundColor:
         '#fff',
 
-      borderRadius: 14,
+      borderRadius:
+        14,
 
-      padding: 18,
+      padding:
+        18,
 
-      marginBottom: 15,
+      marginBottom:
+        15,
 
-      elevation: 1,
+      elevation:
+        1,
 
       shadowColor:
         '#000',
@@ -688,7 +900,8 @@ const styles =
       shadowOpacity:
         0.05,
 
-      shadowRadius: 3,
+      shadowRadius:
+        3,
 
       shadowOffset: {
         width: 0,
@@ -696,50 +909,95 @@ const styles =
       },
     },
 
+
     titulo: {
-      fontSize: 21,
-      fontWeight: 'bold',
-      color: '#222',
-      marginBottom: 6,
+      fontSize:
+        21,
+
+      fontWeight:
+        'bold',
+
+      color:
+        '#222',
+
+      marginBottom:
+        6,
     },
+
 
     descricao: {
-      fontSize: 13,
-      color: '#666',
-      lineHeight: 19,
+      fontSize:
+        13,
+
+      color:
+        '#666',
+
+      lineHeight:
+        19,
     },
 
-    alunoContainer: {
-      marginTop: 16,
-      paddingTop: 14,
 
-      borderTopWidth: 1,
+    alunoContainer: {
+      marginTop:
+        16,
+
+      paddingTop:
+        14,
+
+      borderTopWidth:
+        1,
+
       borderTopColor:
         '#eeeeee',
     },
 
+
     alunoLabel: {
-      fontSize: 12,
-      color: '#888',
+      fontSize:
+        12,
+
+      color:
+        '#888',
     },
+
 
     alunoNome: {
-      fontSize: 15,
-      fontWeight: 'bold',
-      color: '#222',
-      marginTop: 2,
+      fontSize:
+        15,
+
+      fontWeight:
+        'bold',
+
+      color:
+        '#222',
+
+      marginTop:
+        2,
     },
+
 
     matricula: {
-      fontSize: 13,
-      color: '#777',
-      marginTop: 2,
+      fontSize:
+        13,
+
+      color:
+        '#777',
+
+      marginTop:
+        2,
     },
 
-    validando: {
-      flexDirection: 'row',
 
-      alignItems: 'center',
+    // ==================================================
+    // VALIDANDO
+    // ==================================================
+
+    validando: {
+      flexDirection:
+        'row',
+
+      alignItems:
+        'center',
 
       justifyContent:
         'center',
@@ -747,52 +1005,78 @@ const styles =
       backgroundColor:
         '#fff',
 
-      borderRadius: 10,
+      borderRadius:
+        10,
 
-      padding: 12,
+      padding:
+        12,
 
-      marginBottom: 12,
+      marginBottom:
+        12,
     },
+
 
     textoValidando: {
-      marginLeft: 10,
+      marginLeft:
+        10,
 
-      color: '#555',
+      color:
+        '#555',
 
-      fontSize: 13,
+      fontSize:
+        13,
 
-      fontWeight: '600',
+      fontWeight:
+        '600',
     },
+
+
+    // ==================================================
+    // MENSAGEM
+    // ==================================================
 
     mensagem: {
-      borderRadius: 10,
+      borderRadius:
+        10,
 
-      padding: 12,
+      padding:
+        12,
 
-      marginBottom: 12,
+      marginBottom:
+        12,
     },
+
 
     mensagemSucesso: {
       backgroundColor:
         '#e7f5ef',
     },
 
+
     mensagemErro: {
       backgroundColor:
         '#fdeaea',
     },
 
-    textoMensagem: {
-      fontSize: 13,
 
-      fontWeight: '600',
+    textoMensagem: {
+      fontSize:
+        13,
+
+      fontWeight:
+        '600',
     },
+
 
     textoSucesso: {
-      color: '#27865c',
+      color:
+        '#27865c',
     },
 
+
     textoErro: {
-      color: '#a2181c',
+      color:
+        '#a2181c',
     },
+
   });
