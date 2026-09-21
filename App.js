@@ -43,6 +43,9 @@ import InicioProfessorScreen
 import TurmasProfessorScreen
   from './src/telas/TurmasProfessor';
 
+import HistoricoProfessorScreen
+  from './src/telas/HistoricoProfessor';
+
 
 const Tab =
   createBottomTabNavigator();
@@ -53,42 +56,61 @@ const Tab =
 // ======================================================
 
 function BotaoSair() {
-  const { sair } =
+  const {
+    sair,
+  } =
     useAuth();
 
-  const confirmarSaida = () => {
-    Alert.alert(
-      'Sair',
-      'Deseja sair da sua conta?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
 
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: sair,
-        },
-      ]
-    );
-  };
+  const confirmarSaida =
+    () => {
+
+      Alert.alert(
+        'Sair',
+        'Deseja sair da sua conta?',
+        [
+          {
+            text:
+              'Cancelar',
+
+            style:
+              'cancel',
+          },
+
+          {
+            text:
+              'Sair',
+
+            style:
+              'destructive',
+
+            onPress:
+              sair,
+          },
+        ]
+      );
+    };
 
 
   return (
     <TouchableOpacity
-      onPress={confirmarSaida}
+      onPress={
+        confirmarSaida
+      }
+
       style={{
         marginRight: 16,
       }}
+
       accessibilityLabel="Sair"
     >
+
       <Ionicons
         name="log-out-outline"
         size={24}
         color="#fff"
       />
+
     </TouchableOpacity>
   );
 }
@@ -99,6 +121,7 @@ function BotaoSair() {
 // ======================================================
 
 const estiloCabecalho = {
+
   tabBarActiveTintColor:
     '#a2181c',
 
@@ -125,7 +148,8 @@ const estiloCabecalho = {
   },
 
   headerRight:
-    () => <BotaoSair />,
+    () =>
+      <BotaoSair />,
 };
 
 
@@ -139,37 +163,47 @@ function AbasAluno() {
       screenOptions={({
         route,
       }) => ({
+
         tabBarIcon: ({
           color,
           size,
         }) => {
+
           let iconName;
+
 
           if (
             route.name ===
             'Início'
           ) {
+
             iconName =
               'home';
+
 
           } else if (
             route.name ===
             'Presença'
           ) {
+
             iconName =
               'scan-circle';
+
 
           } else if (
             route.name ===
             'Mapa'
           ) {
+
             iconName =
               'map';
+
 
           } else if (
             route.name ===
             'Perfil'
           ) {
+
             iconName =
               'person';
           }
@@ -180,9 +214,11 @@ function AbasAluno() {
               name={
                 iconName
               }
+
               size={
                 size
               }
+
               color={
                 color
               }
@@ -196,9 +232,11 @@ function AbasAluno() {
 
       <Tab.Screen
         name="Início"
+
         component={
           InicioScreen
         }
+
         options={{
           title:
             'Área do Aluno',
@@ -208,9 +246,11 @@ function AbasAluno() {
 
       <Tab.Screen
         name="Presença"
+
         component={
           PresencaScreen
         }
+
         options={{
           title:
             'Registrar presença',
@@ -220,9 +260,11 @@ function AbasAluno() {
 
       <Tab.Screen
         name="Mapa"
+
         component={
           MapaScreen
         }
+
         options={{
           title:
             'Mapa do Campus',
@@ -232,9 +274,11 @@ function AbasAluno() {
 
       <Tab.Screen
         name="Perfil"
+
         component={
           PerfilScreen
         }
+
         options={{
           title:
             'Meu Perfil',
@@ -256,25 +300,40 @@ function AbasProfessor() {
       screenOptions={({
         route,
       }) => ({
+
         tabBarIcon: ({
           color,
           size,
         }) => {
+
           let iconName;
+
 
           if (
             route.name ===
             'InícioProfessor'
           ) {
+
             iconName =
               'home';
+
 
           } else if (
             route.name ===
             'TurmasProfessor'
           ) {
+
             iconName =
               'school';
+
+
+          } else if (
+            route.name ===
+            'HistoricoProfessor'
+          ) {
+
+            iconName =
+              'clipboard';
           }
 
 
@@ -283,9 +342,11 @@ function AbasProfessor() {
               name={
                 iconName
               }
+
               size={
                 size
               }
+
               color={
                 color
               }
@@ -297,11 +358,17 @@ function AbasProfessor() {
       })}
     >
 
+      {/* ============================================== */}
+      {/* INÍCIO */}
+      {/* ============================================== */}
+
       <Tab.Screen
         name="InícioProfessor"
+
         component={
           InicioProfessorScreen
         }
+
         options={{
           title:
             'Área do Professor',
@@ -312,17 +379,44 @@ function AbasProfessor() {
       />
 
 
+      {/* ============================================== */}
+      {/* TURMAS */}
+      {/* ============================================== */}
+
       <Tab.Screen
         name="TurmasProfessor"
+
         component={
           TurmasProfessorScreen
         }
+
         options={{
           title:
             'Minhas Turmas',
 
           tabBarLabel:
             'Turmas',
+        }}
+      />
+
+
+      {/* ============================================== */}
+      {/* HISTÓRICO */}
+      {/* ============================================== */}
+
+      <Tab.Screen
+        name="HistoricoProfessor"
+
+        component={
+          HistoricoProfessorScreen
+        }
+
+        options={{
+          title:
+            'Histórico de Presenças',
+
+          tabBarLabel:
+            'Histórico',
         }}
       />
 
@@ -336,11 +430,16 @@ function AbasProfessor() {
 // ======================================================
 
 function Rotas() {
-  const { usuario } =
+  const {
+    usuario,
+  } =
     useAuth();
 
 
-  if (!usuario) {
+  if (
+    !usuario
+  ) {
+
     return (
       <LoginScreen />
     );
@@ -351,6 +450,7 @@ function Rotas() {
     usuario.tipo ===
     'professor'
   ) {
+
     return (
       <AbasProfessor />
     );
@@ -370,9 +470,13 @@ function Rotas() {
 export default function App() {
   return (
     <AuthProvider>
+
       <NavigationContainer>
+
         <Rotas />
+
       </NavigationContainer>
+
     </AuthProvider>
   );
 }

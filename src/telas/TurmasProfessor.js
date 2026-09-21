@@ -479,6 +479,9 @@ export default function TurmasProfessorScreen() {
                       }
                     >
                       {turma.horario}
+                      {turma.horarioFim
+                        ? ` às ${turma.horarioFim}`
+                        : ''}
                     </Text>
 
                   </View>
@@ -544,6 +547,42 @@ export default function TurmasProfessorScreen() {
                   </Text>
 
                 </View>
+
+
+                {/* ====================================== */}
+                {/* INICIAR AULA */}
+                {/* ====================================== */}
+
+                <TouchableOpacity
+                  style={
+                    styles.botaoIniciar
+                  }
+                  onPress={() =>
+                    iniciarAula(
+                      turma
+                    )
+                  }
+                  activeOpacity={
+                    0.8
+                  }
+                >
+
+                  <Ionicons
+                    name="qr-code-outline"
+                    size={20}
+                    color="#fff"
+                  />
+
+
+                  <Text
+                    style={
+                      styles.textoIniciar
+                    }
+                  >
+                    Iniciar aula
+                  </Text>
+
+                </TouchableOpacity>
 
 
                 {/* ====================================== */}
@@ -666,42 +705,6 @@ export default function TurmasProfessorScreen() {
                   )}
 
                 </View>
-
-
-                {/* ====================================== */}
-                {/* INICIAR AULA */}
-                {/* ====================================== */}
-
-                <TouchableOpacity
-                  style={
-                    styles.botaoIniciar
-                  }
-                  onPress={() =>
-                    iniciarAula(
-                      turma
-                    )
-                  }
-                  activeOpacity={
-                    0.8
-                  }
-                >
-
-                  <Ionicons
-                    name="qr-code-outline"
-                    size={20}
-                    color="#fff"
-                  />
-
-
-                  <Text
-                    style={
-                      styles.textoIniciar
-                    }
-                  >
-                    Iniciar aula
-                  </Text>
-
-                </TouchableOpacity>
 
               </View>
 
@@ -937,6 +940,38 @@ const styles =
 
 
     // ==================================================
+    // INICIAR AULA
+    // ==================================================
+
+    botaoIniciar: {
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      backgroundColor: '#a2181c',
+
+      borderRadius: 10,
+
+      paddingVertical: 13,
+
+      marginTop: 16,
+    },
+
+
+    textoIniciar: {
+      color: '#fff',
+
+      fontWeight: 'bold',
+
+      fontSize: 14,
+
+      marginLeft: 7,
+    },
+
+
+    // ==================================================
     // ALUNOS
     // ==================================================
 
@@ -955,11 +990,9 @@ const styles =
     alunosCabecalho: {
       flexDirection: 'row',
 
-      justifyContent:
-        'space-between',
+      justifyContent: 'space-between',
 
-      alignItems:
-        'center',
+      alignItems: 'center',
 
       marginBottom: 10,
     },
@@ -975,8 +1008,7 @@ const styles =
 
 
     contador: {
-      backgroundColor:
-        '#f8e8e8',
+      backgroundColor: '#f8e8e8',
 
       minWidth: 26,
 
@@ -984,11 +1016,9 @@ const styles =
 
       borderRadius: 13,
 
-      justifyContent:
-        'center',
+      justifyContent: 'center',
 
-      alignItems:
-        'center',
+      alignItems: 'center',
 
       paddingHorizontal: 7,
     },
@@ -1019,14 +1049,11 @@ const styles =
 
       borderRadius: 18,
 
-      backgroundColor:
-        '#edf1f4',
+      backgroundColor: '#edf1f4',
 
-      justifyContent:
-        'center',
+      justifyContent: 'center',
 
-      alignItems:
-        'center',
+      alignItems: 'center',
 
       marginRight: 10,
     },
@@ -1074,40 +1101,6 @@ const styles =
 
 
     // ==================================================
-    // INICIAR AULA
-    // ==================================================
-
-    botaoIniciar: {
-      flexDirection: 'row',
-
-      alignItems: 'center',
-
-      justifyContent:
-        'center',
-
-      backgroundColor:
-        '#a2181c',
-
-      borderRadius: 10,
-
-      paddingVertical: 13,
-
-      marginTop: 18,
-    },
-
-
-    textoIniciar: {
-      color: '#fff',
-
-      fontWeight: 'bold',
-
-      fontSize: 14,
-
-      marginLeft: 7,
-    },
-
-
-    // ==================================================
     // VAZIO
     // ==================================================
 
@@ -1151,13 +1144,11 @@ const styles =
     carregando: {
       flex: 1,
 
-      backgroundColor:
-        '#edf1f4',
+      backgroundColor: '#edf1f4',
 
       alignItems: 'center',
 
-      justifyContent:
-        'center',
+      justifyContent: 'center',
     },
 
 

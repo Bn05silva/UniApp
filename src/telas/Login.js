@@ -422,14 +422,18 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
 
+          {/* ============================================ */}
+          {/* CREDENCIAIS DE TESTE */}
+          {/* ============================================ */}
+
           <Text
             style={
               styles.ajuda
             }
           >
-            Após informar seus dados,
-            confirme sua identidade
-            utilizando a biometria do aparelho.
+            Aluno: 202312084 | Senha: 123456
+            {'\n'}
+            Professor: PROF001 | Senha: 123456
           </Text>
 
         </View>
@@ -554,8 +558,7 @@ const styles =
 
 
     opcao: {
-      flex:
-        1,
+      flex: 1,
 
       paddingVertical:
         10,
@@ -699,6 +702,10 @@ const styles =
         15,
     },
 
+
+    // ==================================================
+    // CREDENCIAIS
+    // ==================================================
 
     ajuda: {
       fontSize:

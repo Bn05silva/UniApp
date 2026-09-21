@@ -45,8 +45,16 @@ const FACULDADE_LONG =
 const RAIO_PERMITIDO_METROS =
   150;
 
-const STORAGE_KEY =
-  '@uniapp_presencas';
+
+// ======================================================
+// CHAVE DE PRESENÇA POR ALUNO
+// ======================================================
+
+function obterStorageKey(
+  matricula
+) {
+  return `@uniapp_presencas_${matricula}`;
+}
 
 
 // ======================================================
@@ -59,7 +67,8 @@ function calcularDistancia(
   lat2,
   lon2
 ) {
-  const R = 6371e3;
+  const R =
+    6371e3;
 
   const dLat =
     ((lat2 - lat1) *
@@ -72,24 +81,36 @@ function calcularDistancia(
     180;
 
   const a =
-    Math.sin(dLat / 2) *
-      Math.sin(dLat / 2) +
+    Math.sin(
+      dLat / 2
+    ) *
+      Math.sin(
+        dLat / 2
+      ) +
     Math.cos(
-      (lat1 * Math.PI) /
+      (lat1 *
+        Math.PI) /
         180
     ) *
       Math.cos(
-        (lat2 * Math.PI) /
+        (lat2 *
+          Math.PI) /
           180
       ) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+      Math.sin(
+        dLon / 2
+      ) *
+      Math.sin(
+        dLon / 2
+      );
 
   const c =
     2 *
     Math.atan2(
       Math.sqrt(a),
-      Math.sqrt(1 - a)
+      Math.sqrt(
+        1 - a
+      )
     );
 
   return R * c;
@@ -109,13 +130,20 @@ function obterDataISO() {
 
   const mes =
     String(
-      agora.getMonth() + 1
-    ).padStart(2, '0');
+      agora.getMonth() +
+        1
+    ).padStart(
+      2,
+      '0'
+    );
 
   const dia =
     String(
       agora.getDate()
-    ).padStart(2, '0');
+    ).padStart(
+      2,
+      '0'
+    );
 
   return `${ano}-${mes}-${dia}`;
 }
@@ -129,15 +157,18 @@ export default function PresencaScreen() {
   const { usuario } =
     useAuth();
 
+
   const [
     listItems,
     setListItems,
   ] = useState([]);
 
+
   const [
     validando,
     setValidando,
   ] = useState(false);
+
 
   const [
     ultimaMensagem,
@@ -151,7 +182,9 @@ export default function PresencaScreen() {
 
   useEffect(() => {
     carregarPresencas();
-  }, []);
+  }, [
+    usuario?.matricula,
+  ]);
 
 
   const carregarPresencas =
@@ -159,33 +192,59 @@ export default function PresencaScreen() {
 
       try {
 
+        if (
+          !usuario ||
+          usuario.tipo !==
+            'aluno'
+        ) {
+          setListItems(
+            []
+          );
+
+          return;
+        }
+
+
+        const storageKey =
+          obterStorageKey(
+            usuario.matricula
+          );
+
+
         const dados =
           await AsyncStorage.getItem(
-            STORAGE_KEY
+            storageKey
           );
 
 
         if (dados) {
 
           setListItems(
-            JSON.parse(dados)
+            JSON.parse(
+              dados
+            )
           );
 
         } else {
 
-          setListItems([]);
-
+          setListItems(
+            []
+          );
         }
 
       } catch (error) {
 
+        setListItems(
+          []
+        );
+
         setUltimaMensagem({
-          tipo: 'erro',
+          tipo:
+            'erro',
 
           texto:
             'Não foi possível carregar o histórico de presenças.',
         });
-
       }
     };
 
@@ -199,8 +258,21 @@ export default function PresencaScreen() {
 
       try {
 
+        if (
+          !usuario?.matricula
+        ) {
+          return false;
+        }
+
+
+        const storageKey =
+          obterStorageKey(
+            usuario.matricula
+          );
+
+
         await AsyncStorage.setItem(
-          STORAGE_KEY,
+          storageKey,
           JSON.stringify(
             novaLista
           )
@@ -217,7 +289,8 @@ export default function PresencaScreen() {
       } catch (error) {
 
         setUltimaMensagem({
-          tipo: 'erro',
+          tipo:
+            'erro',
 
           texto:
             'Não foi possível salvar a presença.',
@@ -306,7 +379,7 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // VALIDAR CAMPOS DO QR
+        // VALIDAR CAMPOS
         // ================================================
 
         if (
@@ -421,7 +494,7 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // PROFESSOR CORRESPONDE À TURMA?
+        // PROFESSOR CORRESPONDE?
         // ================================================
 
         if (
@@ -436,10 +509,21 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // EVITAR PRESENÇA DUPLICADA
+        // DATA VISUAL
         // ================================================
 
-        const jaRegistrada =
+        const dataAtual =
+          new Date()
+            .toLocaleDateString(
+              'pt-BR'
+            );
+
+
+        // ================================================
+        // EVITAR MESMA SESSÃO
+        // ================================================
+
+        const mesmaSessao =
           listItems.some(
             (item) =>
               item.sessao ===
@@ -449,10 +533,49 @@ export default function PresencaScreen() {
           );
 
 
-        if (jaRegistrada) {
+        if (mesmaSessao) {
 
           throw new Error(
             'Sua presença nesta aula já foi registrada.'
+          );
+        }
+
+
+        // ================================================
+        // EVITAR OUTRO QR DA MESMA TURMA NO MESMO DIA
+        // ================================================
+
+        const presencaDoDia =
+          listItems.some(
+            (item) => {
+
+              const mesmaTurma =
+                item.turmaId ===
+                turma.id;
+
+
+              const mesmaData =
+                item.dataISO ===
+                  dataHoje ||
+                (
+                  !item.dataISO &&
+                  item.data ===
+                    dataAtual
+                );
+
+
+              return (
+                mesmaTurma &&
+                mesmaData
+              );
+            }
+          );
+
+
+        if (presencaDoDia) {
+
+          throw new Error(
+            'Sua presença nesta disciplina já foi registrada hoje.'
           );
         }
 
@@ -465,7 +588,9 @@ export default function PresencaScreen() {
           await obterLocalizacaoAtual();
 
 
-        if (!localizacao.ok) {
+        if (
+          !localizacao.ok
+        ) {
 
           throw new Error(
             localizacao.erro
@@ -479,10 +604,12 @@ export default function PresencaScreen() {
 
         const distancia =
           calcularDistancia(
-            localizacao.coords
+            localizacao
+              .coords
               .latitude,
 
-            localizacao.coords
+            localizacao
+              .coords
               .longitude,
 
             FACULDADE_LAT,
@@ -541,17 +668,11 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // DATA E HORA
+        // HORA
         // ================================================
 
         const agoraData =
           new Date();
-
-
-        const dataAtual =
-          agoraData.toLocaleDateString(
-            'pt-BR'
-          );
 
 
         const horaAtual =
@@ -574,7 +695,8 @@ export default function PresencaScreen() {
         const novoRegistro = {
 
           id:
-            Date.now().toString(),
+            Date.now()
+              .toString(),
 
           sessao:
             dadosQR.sessao,
@@ -614,15 +736,20 @@ export default function PresencaScreen() {
             ),
 
           latitude:
-            localizacao.coords
+            localizacao
+              .coords
               .latitude,
 
           longitude:
-            localizacao.coords
+            localizacao
+              .coords
               .longitude,
 
           data:
             dataAtual,
+
+          dataISO:
+            dataHoje,
 
           hora:
             horaAtual,
@@ -654,7 +781,7 @@ export default function PresencaScreen() {
 
 
         // ================================================
-        // SUCESSO NA PRÓPRIA TELA
+        // SUCESSO
         // ================================================
 
         setUltimaMensagem({
@@ -698,10 +825,6 @@ export default function PresencaScreen() {
         styles.container
       }
     >
-
-      {/* ============================================== */}
-      {/* INFORMAÇÕES */}
-      {/* ============================================== */}
 
       <View
         style={
@@ -766,10 +889,6 @@ export default function PresencaScreen() {
       </View>
 
 
-      {/* ============================================== */}
-      {/* CÂMERA */}
-      {/* ============================================== */}
-
       <LeitorCamera
         onScanned={
           processarQRCode
@@ -779,10 +898,6 @@ export default function PresencaScreen() {
         }
       />
 
-
-      {/* ============================================== */}
-      {/* VALIDANDO */}
-      {/* ============================================== */}
 
       {validando && (
 
@@ -810,10 +925,6 @@ export default function PresencaScreen() {
 
       )}
 
-
-      {/* ============================================== */}
-      {/* RESULTADO */}
-      {/* ============================================== */}
 
       {ultimaMensagem && (
 
@@ -845,10 +956,6 @@ export default function PresencaScreen() {
 
       )}
 
-
-      {/* ============================================== */}
-      {/* HISTÓRICO */}
-      {/* ============================================== */}
 
       <ListItem
         listItems={
@@ -988,10 +1095,6 @@ const styles =
     },
 
 
-    // ==================================================
-    // VALIDANDO
-    // ==================================================
-
     validando: {
       flexDirection:
         'row',
@@ -1030,10 +1133,6 @@ const styles =
         '600',
     },
 
-
-    // ==================================================
-    // MENSAGEM
-    // ==================================================
 
     mensagem: {
       borderRadius:

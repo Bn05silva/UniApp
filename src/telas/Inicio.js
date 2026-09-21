@@ -39,15 +39,23 @@ import AcessoRapido
 const PERFIL_KEY =
   '@uniapp_perfil';
 
-const PRESENCAS_KEY =
-  '@uniapp_presencas';
-
 
 const PERFIL_PADRAO = {
   nome: 'Aluno',
   curso: 'Engenharia de Software',
   periodo: '7º período',
 };
+
+
+// ======================================================
+// CHAVE DE PRESENÇA POR ALUNO
+// ======================================================
+
+function obterStorageKeyPresencas(
+  matricula
+) {
+  return `@uniapp_presencas_${matricula}`;
+}
 
 
 // ======================================================
@@ -76,11 +84,16 @@ function calcularDataProximaAula(
   const agora =
     new Date();
 
+
   const diaTurma =
-    DIAS_SEMANA[dia];
+    DIAS_SEMANA[
+      dia
+    ];
+
 
   if (
-    diaTurma === undefined
+    diaTurma ===
+    undefined
   ) {
     return null;
   }
@@ -89,10 +102,12 @@ function calcularDataProximaAula(
   const partesHorario =
     horario.split(':');
 
+
   const hora =
     Number(
       partesHorario[0]
     );
+
 
   const minuto =
     Number(
@@ -101,8 +116,12 @@ function calcularDataProximaAula(
 
 
   if (
-    Number.isNaN(hora) ||
-    Number.isNaN(minuto)
+    Number.isNaN(
+      hora
+    ) ||
+    Number.isNaN(
+      minuto
+    )
   ) {
     return null;
   }
@@ -117,22 +136,27 @@ function calcularDataProximaAula(
     diaAtual;
 
 
-  // Se o dia já passou nesta semana,
-  // pula para a próxima semana.
+  // ====================================================
+  // SE O DIA JÁ PASSOU
+  // ====================================================
+
   if (
     diferencaDias < 0
   ) {
-    diferencaDias += 7;
+    diferencaDias +=
+      7;
   }
 
 
   const proximaData =
-    new Date(agora);
+    new Date(
+      agora
+    );
 
 
   proximaData.setDate(
     agora.getDate() +
-    diferencaDias
+      diferencaDias
   );
 
 
@@ -144,14 +168,17 @@ function calcularDataProximaAula(
   );
 
 
-  // Se a aula é hoje, mas o horário já passou,
-  // considera a aula da próxima semana.
+  // ====================================================
+  // SE A AULA DE HOJE JÁ PASSOU
+  // ====================================================
+
   if (
-    proximaData <= agora
+    proximaData <=
+    agora
   ) {
     proximaData.setDate(
       proximaData.getDate() +
-      7
+        7
     );
   }
 
@@ -169,6 +196,7 @@ function obterTextoQuando(
 ) {
   const hoje =
     new Date();
+
 
   const inicioHoje =
     new Date(
@@ -202,14 +230,16 @@ function obterTextoQuando(
 
 
   if (
-    diferenca === 0
+    diferenca ===
+    0
   ) {
     return 'Hoje';
   }
 
 
   if (
-    diferenca === 1
+    diferenca ===
+    1
   ) {
     return 'Amanhã';
   }
@@ -239,28 +269,35 @@ function obterTextoQuando(
 export default function InicioScreen({
   navigation,
 }) {
-  const { usuario } =
+  const {
+    usuario,
+  } =
     useAuth();
 
 
   const [
     perfil,
     setPerfil,
-  ] = useState(
-    PERFIL_PADRAO
-  );
+  ] =
+    useState(
+      PERFIL_PADRAO
+    );
 
 
   const [
     presencas,
     setPresencas,
-  ] = useState([]);
+  ] =
+    useState([]);
 
 
   const [
     proximaAula,
     setProximaAula,
-  ] = useState(null);
+  ] =
+    useState(
+      null
+    );
 
 
   // ====================================================
@@ -268,9 +305,16 @@ export default function InicioScreen({
   // ====================================================
 
   useFocusEffect(
-    useCallback(() => {
-      carregarDados();
-    }, [usuario])
+    useCallback(
+      () => {
+
+        carregarDados();
+
+      },
+      [
+        usuario,
+      ]
+    )
   );
 
 
@@ -280,6 +324,7 @@ export default function InicioScreen({
 
   const carregarDados =
     async () => {
+
       try {
 
         // ==============================================
@@ -292,38 +337,69 @@ export default function InicioScreen({
           );
 
 
-        if (dadosPerfil) {
+        if (
+          dadosPerfil
+        ) {
+
           setPerfil(
             JSON.parse(
               dadosPerfil
             )
           );
+
         }
 
 
         // ==============================================
-        // PRESENÇAS
+        // PRESENÇAS DO ALUNO LOGADO
         // ==============================================
 
-        const dadosPresencas =
-          await AsyncStorage.getItem(
-            PRESENCAS_KEY
-          );
+        if (
+          usuario &&
+          usuario.tipo ===
+            'aluno' &&
+          usuario.matricula
+        ) {
+
+          const storageKey =
+            obterStorageKeyPresencas(
+              usuario.matricula
+            );
 
 
-        if (dadosPresencas) {
-          setPresencas(
-            JSON.parse(
-              dadosPresencas
-            )
-          );
+          const dadosPresencas =
+            await AsyncStorage.getItem(
+              storageKey
+            );
+
+
+          if (
+            dadosPresencas
+          ) {
+
+            setPresencas(
+              JSON.parse(
+                dadosPresencas
+              )
+            );
+
+          } else {
+
+            setPresencas(
+              []
+            );
+          }
+
         } else {
-          setPresencas([]);
+
+          setPresencas(
+            []
+          );
         }
 
 
         // ==============================================
-        // CALCULAR PRÓXIMA AULA
+        // PRÓXIMA AULA
         // ==============================================
 
         await carregarProximaAula();
@@ -351,6 +427,7 @@ export default function InicioScreen({
           usuario.tipo !==
             'aluno'
         ) {
+
           setProximaAula(
             null
           );
@@ -364,7 +441,7 @@ export default function InicioScreen({
 
 
         // ==============================================
-        // DESCOBRIR TURMAS DO ALUNO
+        // MATRÍCULAS DO ALUNO
         // ==============================================
 
         const matriculasAluno =
@@ -382,6 +459,10 @@ export default function InicioScreen({
           );
 
 
+        // ==============================================
+        // TURMAS DO ALUNO
+        // ==============================================
+
         const turmasAluno =
           base.turmas.filter(
             (turma) =>
@@ -395,6 +476,7 @@ export default function InicioScreen({
           turmasAluno.length ===
           0
         ) {
+
           setProximaAula(
             null
           );
@@ -404,13 +486,15 @@ export default function InicioScreen({
 
 
         // ==============================================
-        // CALCULAR DATA DE CADA AULA
+        // CALCULAR PRÓXIMA DATA DE CADA TURMA
         // ==============================================
 
         const aulasCalculadas =
           turmasAluno
             .map(
-              (turma) => {
+              (
+                turma
+              ) => {
 
                 const dataProxima =
                   calcularDataProximaAula(
@@ -419,7 +503,9 @@ export default function InicioScreen({
                   );
 
 
-                if (!dataProxima) {
+                if (
+                  !dataProxima
+                ) {
                   return null;
                 }
 
@@ -441,6 +527,7 @@ export default function InicioScreen({
 
 
                 return {
+
                   turmaId:
                     turma.id,
 
@@ -467,13 +554,16 @@ export default function InicioScreen({
                 };
               }
             )
-            .filter(Boolean);
+            .filter(
+              Boolean
+            );
 
 
         if (
           aulasCalculadas.length ===
           0
         ) {
+
           setProximaAula(
             null
           );
@@ -483,25 +573,31 @@ export default function InicioScreen({
 
 
         // ==============================================
-        // ORDENAR DA MAIS PRÓXIMA PARA A MAIS DISTANTE
+        // ORDENAR DA MAIS PRÓXIMA
         // ==============================================
 
         aulasCalculadas.sort(
-          (a, b) =>
+          (
+            a,
+            b
+          ) =>
             a.dataProxima -
             b.dataProxima
         );
 
 
         const aula =
-          aulasCalculadas[0];
+          aulasCalculadas[
+            0
+          ];
 
 
         // ==============================================
-        // MONTAR OBJETO PARA O COMPONENTE
+        // OBJETO FINAL
         // ==============================================
 
         setProximaAula({
+
           turmaId:
             aula.turmaId,
 
@@ -529,6 +625,7 @@ export default function InicioScreen({
           'Erro ao calcular próxima aula.'
         );
 
+
         setProximaAula(
           null
         );
@@ -541,7 +638,8 @@ export default function InicioScreen({
   // ====================================================
 
   const ultimaPresenca =
-    presencas.length > 0
+    presencas.length >
+    0
       ? presencas[0]
       : null;
 
@@ -555,21 +653,27 @@ export default function InicioScreen({
       style={
         styles.container
       }
+
       contentContainerStyle={
         styles.conteudo
       }
+
       showsVerticalScrollIndicator={
         false
       }
     >
 
       <SaudacaoAluno
-        perfil={perfil}
+        perfil={
+          perfil
+        }
       />
 
 
       <ProximaAula
-        aula={proximaAula}
+        aula={
+          proximaAula
+        }
       />
 
 
@@ -577,6 +681,7 @@ export default function InicioScreen({
         quantidade={
           presencas.length
         }
+
         ultimaPresenca={
           ultimaPresenca
         }
@@ -610,7 +715,8 @@ const styles =
 
 
     conteudo: {
-      padding: 20,
+      padding:
+        20,
 
       paddingBottom:
         35,
