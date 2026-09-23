@@ -441,13 +441,13 @@ const BASE_INICIAL = {
         'Sábado',
 
       horario:
-        '19:00',
+        '9:00',
 
       horarioFim:
-        '22:00',
+        '12:00',
 
       sala:
-        'Laboratório de Informática 2',
+        'Laboratório de Informática 5',
     },
   ],
 
