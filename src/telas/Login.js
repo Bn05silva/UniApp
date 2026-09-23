@@ -179,7 +179,7 @@ export default function LoginScreen() {
               styles.titulo
             }
           >
-            UniApp
+            UniClass
           </Text>
 
           <Text

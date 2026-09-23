@@ -1,4 +1,4 @@
-# UniApp
+# UniClass
 
 ## 1. Apresentação do projeto
 
