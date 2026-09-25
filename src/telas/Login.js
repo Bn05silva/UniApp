@@ -16,6 +16,15 @@ import {
 } from 'react-native';
 
 import {
+  Ionicons,
+} from '@expo/vector-icons';
+
+import {
+  useFonts,
+  Montserrat_800ExtraBold,
+} from '@expo-google-fonts/montserrat';
+
+import {
   useAuth,
 } from '../contexto/AuthContext';
 
@@ -25,11 +34,13 @@ const TIPOS = [
     id: 'aluno',
     rotulo: 'Aluno',
     campo: 'Matrícula',
+    icone: 'school-outline',
   },
   {
     id: 'professor',
     rotulo: 'Professor',
     campo: 'Matrícula funcional',
+    icone: 'briefcase-outline',
   },
 ];
 
@@ -41,6 +52,14 @@ export default function LoginScreen() {
     concluirPrimeiroAcesso,
   } =
     useAuth();
+
+
+  const [
+    fontsLoaded,
+  ] =
+    useFonts({
+      Montserrat_800ExtraBold,
+    });
 
 
   const [
@@ -357,6 +376,24 @@ export default function LoginScreen() {
     };
 
 
+  if (
+    !fontsLoaded
+  ) {
+    return (
+      <View
+        style={
+          styles.carregandoFonte
+        }
+      >
+        <ActivityIndicator
+          size="large"
+          color="#a2181c"
+        />
+      </View>
+    );
+  }
+
+
   return (
     <KeyboardAvoidingView
       style={
@@ -367,7 +404,7 @@ export default function LoginScreen() {
         Platform.OS ===
         'ios'
           ? 'padding'
-          : undefined
+          : 'height'
       }
     >
 
@@ -377,6 +414,13 @@ export default function LoginScreen() {
         }
 
         keyboardShouldPersistTaps="handled"
+
+        keyboardDismissMode={
+          Platform.OS ===
+          'ios'
+            ? 'interactive'
+            : 'on-drag'
+        }
 
         showsVerticalScrollIndicator={
           false
@@ -397,12 +441,22 @@ export default function LoginScreen() {
             UniClass
           </Text>
 
+
           <Text
             style={
               styles.subtitulo
             }
           >
             Universidade de Vassouras
+          </Text>
+
+
+          <Text
+            style={
+              styles.descricaoMarca
+            }
+          >
+            Presença acadêmica de forma simples e segura
           </Text>
 
         </View>
@@ -414,35 +468,43 @@ export default function LoginScreen() {
           }
         >
 
-          <Text
+          <View
             style={
-              styles.tituloCard
+              styles.cabecalhoCard
             }
           >
-            {
-              modo ===
-              'login'
-                ? 'Acessar conta'
-                : 'Primeiro acesso'
-            }
-          </Text>
+
+            <Text
+              style={
+                styles.tituloCard
+              }
+            >
+              {
+                modo ===
+                'login'
+                  ? 'Acessar conta'
+                  : 'Primeiro acesso'
+              }
+            </Text>
 
 
-          <Text
-            style={
-              styles.descricaoCard
-            }
-          >
-            {
-              modo ===
-              'login'
-                ? 'Entre com seus dados acadêmicos.'
-                : etapaPrimeiroAcesso ===
-                  'identificacao'
-                  ? 'Informe sua matrícula para localizar seu cadastro institucional.'
-                  : 'Cadastro localizado. Defina sua senha de acesso.'
-            }
-          </Text>
+            <Text
+              style={
+                styles.descricaoCard
+              }
+            >
+              {
+                modo ===
+                'login'
+                  ? 'Entre com seus dados acadêmicos.'
+                  : etapaPrimeiroAcesso ===
+                    'identificacao'
+                    ? 'Informe sua matrícula para localizar seu cadastro institucional.'
+                    : 'Cadastro localizado. Defina sua senha de acesso.'
+              }
+            </Text>
+
+          </View>
 
 
           <View
@@ -481,6 +543,24 @@ export default function LoginScreen() {
                       carregando
                     }
                   >
+
+                    <Ionicons
+                      name={
+                        item.icone
+                      }
+
+                      size={
+                        17
+                      }
+
+                      color={
+                        tipo ===
+                        item.id
+                          ? '#ffffff'
+                          : '#666666'
+                      }
+                    />
+
 
                     <Text
                       style={[
@@ -521,44 +601,63 @@ export default function LoginScreen() {
                 </Text>
 
 
-                <TextInput
-                  key={
-                    `login-${tipo}`
-                  }
-
+                <View
                   style={
-                    styles.input
+                    styles.inputContainer
                   }
+                >
 
-                  value={
-                    identificador
-                  }
+                  <Ionicons
+                    name="person-outline"
+                    size={
+                      19
+                    }
+                    color="#8b8b8b"
+                  />
 
-                  onChangeText={
-                    setIdentificador
-                  }
 
-                  placeholder={
-                    tipo ===
-                    'aluno'
-                      ? 'Digite sua matrícula'
-                      : 'Digite sua matrícula funcional'
-                  }
+                  <TextInput
+                    key={
+                      `login-${tipo}`
+                    }
 
-                  keyboardType="number-pad"
+                    style={
+                      styles.input
+                    }
 
-                  autoCapitalize="none"
+                    value={
+                      identificador
+                    }
 
-                  autoCorrect={
-                    false
-                  }
+                    onChangeText={
+                      setIdentificador
+                    }
 
-                  editable={
-                    !carregando
-                  }
+                    placeholder={
+                      tipo ===
+                      'aluno'
+                        ? 'Digite sua matrícula'
+                        : 'Digite sua matrícula funcional'
+                    }
 
-                  returnKeyType="next"
-                />
+                    placeholderTextColor="#aaaaaa"
+
+                    keyboardType="number-pad"
+
+                    autoCapitalize="none"
+
+                    autoCorrect={
+                      false
+                    }
+
+                    editable={
+                      !carregando
+                    }
+
+                    returnKeyType="next"
+                  />
+
+                </View>
 
 
                 <Text
@@ -570,54 +669,90 @@ export default function LoginScreen() {
                 </Text>
 
 
-                <TextInput
+                <View
                   style={
-                    styles.input
+                    styles.inputContainer
                   }
+                >
 
-                  value={
-                    senha
-                  }
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={
+                      19
+                    }
+                    color="#8b8b8b"
+                  />
 
-                  onChangeText={
-                    setSenha
-                  }
 
-                  placeholder="Digite sua senha"
+                  <TextInput
+                    style={
+                      styles.input
+                    }
 
-                  secureTextEntry
+                    value={
+                      senha
+                    }
 
-                  autoCapitalize="none"
+                    onChangeText={
+                      setSenha
+                    }
 
-                  autoCorrect={
-                    false
-                  }
+                    placeholder="Digite sua senha"
 
-                  editable={
-                    !carregando
-                  }
+                    placeholderTextColor="#aaaaaa"
 
-                  returnKeyType="done"
+                    secureTextEntry
 
-                  onSubmitEditing={
-                    handleEntrar
-                  }
-                />
+                    autoCapitalize="none"
+
+                    autoCorrect={
+                      false
+                    }
+
+                    editable={
+                      !carregando
+                    }
+
+                    returnKeyType="done"
+
+                    onSubmitEditing={
+                      handleEntrar
+                    }
+                  />
+
+                </View>
 
 
                 {
                   erro !==
                   '' && (
 
-                    <Text
+                    <View
                       style={
-                        styles.erro
+                        styles.caixaErro
                       }
                     >
-                      {
-                        erro
-                      }
-                    </Text>
+
+                      <Ionicons
+                        name="alert-circle-outline"
+                        size={
+                          18
+                        }
+                        color="#b31d22"
+                      />
+
+
+                      <Text
+                        style={
+                          styles.erro
+                        }
+                      >
+                        {
+                          erro
+                        }
+                      </Text>
+
+                    </View>
 
                   )
                 }
@@ -645,19 +780,36 @@ export default function LoginScreen() {
                       ? (
 
                         <ActivityIndicator
-                          color="#fff"
+                          color="#ffffff"
                         />
 
                       )
                       : (
 
-                        <Text
+                        <View
                           style={
-                            styles.textoBotao
+                            styles.conteudoBotao
                           }
                         >
-                          Entrar
-                        </Text>
+
+                          <Text
+                            style={
+                              styles.textoBotao
+                            }
+                          >
+                            Entrar
+                          </Text>
+
+
+                          <Ionicons
+                            name="arrow-forward"
+                            size={
+                              18
+                            }
+                            color="#ffffff"
+                          />
+
+                        </View>
 
                       )
                   }
@@ -679,6 +831,15 @@ export default function LoginScreen() {
                   }
                 >
 
+                  <Ionicons
+                    name="key-outline"
+                    size={
+                      17
+                    }
+                    color="#a2181c"
+                  />
+
+
                   <Text
                     style={
                       styles.textoPrimeiroAcesso
@@ -690,15 +851,56 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
 
-                <Text
+                <View
                   style={
-                    styles.ajuda
+                    styles.caixaTeste
                   }
                 >
-                  Aluno: 202312084 | Senha: 123456
-                  {'\n'}
-                  Professor: 20260001 | Senha: 123456
-                </Text>
+
+                  <View
+                    style={
+                      styles.tituloTesteContainer
+                    }
+                  >
+
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={
+                        16
+                      }
+                      color="#777777"
+                    />
+
+
+                    <Text
+                      style={
+                        styles.tituloTeste
+                      }
+                    >
+                      Dados para demonstrar
+                    </Text>
+
+                  </View>
+
+
+                  <Text
+                    style={
+                      styles.textoTeste
+                    }
+                  >
+                    Aluno: 202312084 | Senha: 123456
+                  </Text>
+
+
+                  <Text
+                    style={
+                      styles.textoTeste
+                    }
+                  >
+                    Professor: 20260001 | Senha: 123456
+                  </Text>
+
+                </View>
 
               </>
             )
@@ -723,63 +925,99 @@ export default function LoginScreen() {
                 </Text>
 
 
-                <TextInput
-                  key={
-                    `primeiro-${tipo}`
-                  }
-
+                <View
                   style={
-                    styles.input
+                    styles.inputContainer
                   }
+                >
 
-                  value={
-                    identificador
-                  }
+                  <Ionicons
+                    name="person-outline"
+                    size={
+                      19
+                    }
+                    color="#8b8b8b"
+                  />
 
-                  onChangeText={
-                    setIdentificador
-                  }
 
-                  placeholder={
-                    tipo ===
-                    'aluno'
-                      ? 'Digite sua matrícula'
-                      : 'Digite sua matrícula funcional'
-                  }
+                  <TextInput
+                    key={
+                      `primeiro-${tipo}`
+                    }
 
-                  keyboardType="number-pad"
+                    style={
+                      styles.input
+                    }
 
-                  autoCapitalize="none"
+                    value={
+                      identificador
+                    }
 
-                  autoCorrect={
-                    false
-                  }
+                    onChangeText={
+                      setIdentificador
+                    }
 
-                  editable={
-                    !carregando
-                  }
+                    placeholder={
+                      tipo ===
+                      'aluno'
+                        ? 'Digite sua matrícula'
+                        : 'Digite sua matrícula funcional'
+                    }
 
-                  returnKeyType="done"
+                    placeholderTextColor="#aaaaaa"
 
-                  onSubmitEditing={
-                    handleVerificarCadastro
-                  }
-                />
+                    keyboardType="number-pad"
+
+                    autoCapitalize="none"
+
+                    autoCorrect={
+                      false
+                    }
+
+                    editable={
+                      !carregando
+                    }
+
+                    returnKeyType="done"
+
+                    onSubmitEditing={
+                      handleVerificarCadastro
+                    }
+                  />
+
+                </View>
 
 
                 {
                   erro !==
                   '' && (
 
-                    <Text
+                    <View
                       style={
-                        styles.erro
+                        styles.caixaErro
                       }
                     >
-                      {
-                        erro
-                      }
-                    </Text>
+
+                      <Ionicons
+                        name="alert-circle-outline"
+                        size={
+                          18
+                        }
+                        color="#b31d22"
+                      />
+
+
+                      <Text
+                        style={
+                          styles.erro
+                        }
+                      >
+                        {
+                          erro
+                        }
+                      </Text>
+
+                    </View>
 
                   )
                 }
@@ -807,19 +1045,36 @@ export default function LoginScreen() {
                       ? (
 
                         <ActivityIndicator
-                          color="#fff"
+                          color="#ffffff"
                         />
 
                       )
                       : (
 
-                        <Text
+                        <View
                           style={
-                            styles.textoBotao
+                            styles.conteudoBotao
                           }
                         >
-                          Verificar matrícula
-                        </Text>
+
+                          <Text
+                            style={
+                              styles.textoBotao
+                            }
+                          >
+                            Verificar matrícula
+                          </Text>
+
+
+                          <Ionicons
+                            name="search-outline"
+                            size={
+                              18
+                            }
+                            color="#ffffff"
+                          />
+
+                        </View>
 
                       )
                   }
@@ -833,13 +1088,31 @@ export default function LoginScreen() {
                   }
                 >
 
-                  <Text
+                  <View
                     style={
-                      styles.tituloTeste
+                      styles.tituloTesteContainer
                     }
                   >
-                    Dados para demonstrar
-                  </Text>
+
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={
+                        16
+                      }
+                      color="#777777"
+                    />
+
+
+                    <Text
+                      style={
+                        styles.tituloTeste
+                      }
+                    >
+                      Dados para demonstrar
+                    </Text>
+
+                  </View>
+
 
                   <Text
                     style={
@@ -848,6 +1121,7 @@ export default function LoginScreen() {
                   >
                     Aluno: 202312096
                   </Text>
+
 
                   <Text
                     style={
@@ -873,6 +1147,15 @@ export default function LoginScreen() {
                     carregando
                   }
                 >
+
+                  <Ionicons
+                    name="arrow-back-outline"
+                    size={
+                      16
+                    }
+                    color="#a2181c"
+                  />
+
 
                   <Text
                     style={
@@ -902,35 +1185,62 @@ export default function LoginScreen() {
                   }
                 >
 
-                  <Text
+                  <View
                     style={
-                      styles.cadastroTitulo
+                      styles.cadastroIcone
                     }
                   >
-                    Cadastro encontrado
-                  </Text>
 
-                  <Text
-                    style={
-                      styles.cadastroNome
-                    }
-                  >
-                    {
-                      nomeCadastro
-                    }
-                  </Text>
+                    <Ionicons
+                      name="checkmark"
+                      size={
+                        20
+                      }
+                      color="#a2181c"
+                    />
 
-                  <Text
+                  </View>
+
+
+                  <View
                     style={
-                      styles.cadastroMatricula
+                      styles.cadastroConteudo
                     }
                   >
-                    {
-                      tipoAtual.campo
-                    }: {
-                      identificador
-                    }
-                  </Text>
+
+                    <Text
+                      style={
+                        styles.cadastroTitulo
+                      }
+                    >
+                      Cadastro encontrado
+                    </Text>
+
+
+                    <Text
+                      style={
+                        styles.cadastroNome
+                      }
+                    >
+                      {
+                        nomeCadastro
+                      }
+                    </Text>
+
+
+                    <Text
+                      style={
+                        styles.cadastroMatricula
+                      }
+                    >
+                      {
+                        tipoAtual.campo
+                      }: {
+                        identificador
+                      }
+                    </Text>
+
+                  </View>
 
                 </View>
 
@@ -944,35 +1254,54 @@ export default function LoginScreen() {
                 </Text>
 
 
-                <TextInput
+                <View
                   style={
-                    styles.input
+                    styles.inputContainer
                   }
+                >
 
-                  value={
-                    novaSenha
-                  }
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={
+                      19
+                    }
+                    color="#8b8b8b"
+                  />
 
-                  onChangeText={
-                    setNovaSenha
-                  }
 
-                  placeholder="Mínimo de 6 caracteres"
+                  <TextInput
+                    style={
+                      styles.input
+                    }
 
-                  secureTextEntry
+                    value={
+                      novaSenha
+                    }
 
-                  autoCapitalize="none"
+                    onChangeText={
+                      setNovaSenha
+                    }
 
-                  autoCorrect={
-                    false
-                  }
+                    placeholder="Mínimo de 6 caracteres"
 
-                  editable={
-                    !carregando
-                  }
+                    placeholderTextColor="#aaaaaa"
 
-                  returnKeyType="next"
-                />
+                    secureTextEntry
+
+                    autoCapitalize="none"
+
+                    autoCorrect={
+                      false
+                    }
+
+                    editable={
+                      !carregando
+                    }
+
+                    returnKeyType="next"
+                  />
+
+                </View>
 
 
                 <Text
@@ -984,54 +1313,90 @@ export default function LoginScreen() {
                 </Text>
 
 
-                <TextInput
+                <View
                   style={
-                    styles.input
+                    styles.inputContainer
                   }
+                >
 
-                  value={
-                    confirmarSenha
-                  }
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={
+                      19
+                    }
+                    color="#8b8b8b"
+                  />
 
-                  onChangeText={
-                    setConfirmarSenha
-                  }
 
-                  placeholder="Digite novamente a senha"
+                  <TextInput
+                    style={
+                      styles.input
+                    }
 
-                  secureTextEntry
+                    value={
+                      confirmarSenha
+                    }
 
-                  autoCapitalize="none"
+                    onChangeText={
+                      setConfirmarSenha
+                    }
 
-                  autoCorrect={
-                    false
-                  }
+                    placeholder="Digite novamente a senha"
 
-                  editable={
-                    !carregando
-                  }
+                    placeholderTextColor="#aaaaaa"
 
-                  returnKeyType="done"
+                    secureTextEntry
 
-                  onSubmitEditing={
-                    handleConcluirPrimeiroAcesso
-                  }
-                />
+                    autoCapitalize="none"
+
+                    autoCorrect={
+                      false
+                    }
+
+                    editable={
+                      !carregando
+                    }
+
+                    returnKeyType="done"
+
+                    onSubmitEditing={
+                      handleConcluirPrimeiroAcesso
+                    }
+                  />
+
+                </View>
 
 
                 {
                   erro !==
                   '' && (
 
-                    <Text
+                    <View
                       style={
-                        styles.erro
+                        styles.caixaErro
                       }
                     >
-                      {
-                        erro
-                      }
-                    </Text>
+
+                      <Ionicons
+                        name="alert-circle-outline"
+                        size={
+                          18
+                        }
+                        color="#b31d22"
+                      />
+
+
+                      <Text
+                        style={
+                          styles.erro
+                        }
+                      >
+                        {
+                          erro
+                        }
+                      </Text>
+
+                    </View>
 
                   )
                 }
@@ -1059,19 +1424,36 @@ export default function LoginScreen() {
                       ? (
 
                         <ActivityIndicator
-                          color="#fff"
+                          color="#ffffff"
                         />
 
                       )
                       : (
 
-                        <Text
+                        <View
                           style={
-                            styles.textoBotao
+                            styles.conteudoBotao
                           }
                         >
-                          Ativar acesso
-                        </Text>
+
+                          <Text
+                            style={
+                              styles.textoBotao
+                            }
+                          >
+                            Ativar acesso
+                          </Text>
+
+
+                          <Ionicons
+                            name="checkmark-circle-outline"
+                            size={
+                              18
+                            }
+                            color="#ffffff"
+                          />
+
+                        </View>
 
                       )
                   }
@@ -1086,6 +1468,8 @@ export default function LoginScreen() {
 
                   onPress={
                     () => {
+
+                      Keyboard.dismiss();
 
                       setEtapaPrimeiroAcesso(
                         'identificacao'
@@ -1114,6 +1498,15 @@ export default function LoginScreen() {
                   }
                 >
 
+                  <Ionicons
+                    name="arrow-back-outline"
+                    size={
+                      16
+                    }
+                    color="#a2181c"
+                  />
+
+
                   <Text
                     style={
                       styles.textoVoltar
@@ -1140,99 +1533,122 @@ export default function LoginScreen() {
 const styles =
   StyleSheet.create({
 
+    carregandoFonte: {
+      flex: 1,
+      alignItems:
+        'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        '#f1f4f6',
+    },
+
+
     container: {
       flex: 1,
-
       backgroundColor:
-        '#edf1f4',
+        '#f1f4f6',
     },
 
 
     conteudo: {
       flexGrow: 1,
-
       justifyContent:
         'center',
-
-      padding: 24,
+      paddingHorizontal:
+        20,
+      paddingTop:
+        24,
+      paddingBottom:
+        90,
     },
 
 
     marca: {
       alignItems:
         'center',
-
       marginBottom:
-        28,
+        18,
     },
 
 
     titulo: {
       fontSize:
-        34,
-
-      fontWeight:
-        'bold',
-
+        32,
+      fontFamily:
+        'Montserrat_800ExtraBold',
       color:
         '#a2181c',
-
       letterSpacing:
-        1,
+        0.2,
     },
 
 
     subtitulo: {
       fontSize:
-        14,
-
+        13,
       color:
-        '#777',
-
+        '#777777',
       marginTop:
-        4,
+        3,
+      fontWeight:
+        '500',
+    },
+
+
+    descricaoMarca: {
+      fontSize:
+        12,
+      color:
+        '#9a9a9a',
+      marginTop:
+        6,
+      textAlign:
+        'center',
     },
 
 
     card: {
       backgroundColor:
-        '#fff',
-
+        '#ffffff',
       borderRadius:
-        14,
-
+        18,
       padding:
         20,
-
-      elevation:
-        2,
-
+      borderWidth:
+        1,
+      borderColor:
+        '#eeeeee',
       shadowColor:
-        '#000',
-
+        '#000000',
       shadowOpacity:
         0.08,
-
       shadowRadius:
-        5,
-
+        12,
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 5,
       },
+      elevation:
+        4,
+    },
+
+
+    cabecalhoCard: {
+      alignItems:
+        'center',
+      marginBottom:
+        20,
     },
 
 
     tituloCard: {
       fontSize:
         20,
-
       fontWeight:
-        'bold',
-
+        '800',
       color:
-        '#222',
-
+        '#242424',
       textAlign:
         'center',
     },
@@ -1241,356 +1657,404 @@ const styles =
     descricaoCard: {
       fontSize:
         13,
-
       color:
-        '#777',
-
+        '#777777',
       textAlign:
         'center',
-
       lineHeight:
         19,
-
       marginTop:
         6,
-
-      marginBottom:
-        18,
+      maxWidth:
+        280,
     },
 
 
     seletor: {
       flexDirection:
         'row',
-
       backgroundColor:
-        '#f0f0f0',
-
+        '#f1f1f1',
       borderRadius:
-        10,
-
+        12,
       padding:
-        3,
-
+        4,
       marginBottom:
-        20,
+        22,
     },
 
 
     opcao: {
       flex: 1,
-
-      paddingVertical:
-        10,
-
+      minHeight:
+        42,
       borderRadius:
-        8,
-
+        9,
       alignItems:
         'center',
+      justifyContent:
+        'center',
+      flexDirection:
+        'row',
+      gap:
+        7,
     },
 
 
     opcaoAtiva: {
       backgroundColor:
         '#a2181c',
+      shadowColor:
+        '#a2181c',
+      shadowOpacity:
+        0.18,
+      shadowRadius:
+        5,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      elevation:
+        2,
     },
 
 
     textoOpcao: {
       color:
-        '#555',
-
+        '#5f5f5f',
       fontWeight:
         '600',
-
       fontSize:
-        14,
+        13,
     },
 
 
     textoOpcaoAtivo: {
       color:
-        '#fff',
-
+        '#ffffff',
       fontWeight:
-        'bold',
+        '700',
     },
 
 
     label: {
       fontSize:
-        13,
-
+        12,
       color:
-        '#555',
-
+        '#4d4d4d',
       fontWeight:
-        '600',
-
+        '700',
       marginBottom:
-        5,
+        7,
+    },
+
+
+    inputContainer: {
+      minHeight:
+        48,
+      backgroundColor:
+        '#f7f7f7',
+      borderRadius:
+        10,
+      borderWidth:
+        1,
+      borderColor:
+        '#dddddd',
+      flexDirection:
+        'row',
+      alignItems:
+        'center',
+      paddingHorizontal:
+        13,
+      marginBottom:
+        16,
+      gap:
+        9,
     },
 
 
     input: {
-      backgroundColor:
-        '#f5f5f5',
-
-      borderRadius:
-        9,
-
-      paddingHorizontal:
-        12,
-
-      paddingVertical:
-        11,
-
+      flex: 1,
       fontSize:
-        15,
+        14,
+      color:
+        '#222222',
+      paddingVertical:
+        12,
+    },
 
-      marginBottom:
-        15,
 
+    caixaErro: {
+      backgroundColor:
+        '#fff3f3',
       borderWidth:
         1,
-
       borderColor:
-        '#e0e0e0',
-
-      color:
-        '#222',
+        '#f2cccc',
+      borderRadius:
+        9,
+      paddingHorizontal:
+        11,
+      paddingVertical:
+        10,
+      flexDirection:
+        'row',
+      alignItems:
+        'center',
+      gap:
+        8,
+      marginBottom:
+        14,
     },
 
 
     erro: {
+      flex: 1,
       color:
-        '#c0392b',
-
+        '#a2181c',
       fontSize:
-        13,
-
+        12,
       fontWeight:
         '600',
-
-      marginBottom:
-        12,
-
       lineHeight:
-        18,
+        17,
     },
 
 
     botao: {
+      minHeight:
+        48,
       backgroundColor:
         '#a2181c',
-
       borderRadius:
-        9,
-
-      padding:
-        14,
-
+        10,
       alignItems:
         'center',
+      justifyContent:
+        'center',
+      shadowColor:
+        '#a2181c',
+      shadowOpacity:
+        0.18,
+      shadowRadius:
+        6,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      elevation:
+        2,
     },
 
 
     botaoDesabilitado: {
       opacity:
-        0.7,
+        0.65,
+    },
+
+
+    conteudoBotao: {
+      flexDirection:
+        'row',
+      alignItems:
+        'center',
+      justifyContent:
+        'center',
+      gap:
+        8,
     },
 
 
     textoBotao: {
       color:
-        '#fff',
-
+        '#ffffff',
       fontWeight:
-        'bold',
-
+        '700',
       fontSize:
-        15,
+        14,
     },
 
 
     botaoPrimeiroAcesso: {
+      minHeight:
+        44,
       marginTop:
-        15,
-
-      paddingVertical:
-        8,
-
+        10,
       alignItems:
         'center',
+      justifyContent:
+        'center',
+      flexDirection:
+        'row',
+      gap:
+        7,
     },
 
 
     textoPrimeiroAcesso: {
       color:
         '#a2181c',
-
       fontWeight:
-        'bold',
-
+        '700',
       fontSize:
-        14,
-    },
-
-
-    ajuda: {
-      fontSize:
-        12,
-
-      color:
-        '#888',
-
-      textAlign:
-        'center',
-
-      marginTop:
-        10,
-
-      lineHeight:
-        17,
+        13,
     },
 
 
     caixaTeste: {
       backgroundColor:
-        '#f7f7f7',
-
+        '#f8f8f8',
       borderRadius:
-        9,
-
-      padding:
+        10,
+      paddingHorizontal:
         12,
-
+      paddingVertical:
+        11,
       marginTop:
-        15,
-
+        10,
       borderWidth:
         1,
-
       borderColor:
-        '#eeeeee',
+        '#e9e9e9',
+    },
+
+
+    tituloTesteContainer: {
+      flexDirection:
+        'row',
+      alignItems:
+        'center',
+      justifyContent:
+        'center',
+      gap:
+        5,
+      marginBottom:
+        5,
     },
 
 
     tituloTeste: {
       fontSize:
-        12,
-
+        11,
       color:
-        '#666',
-
+        '#666666',
       fontWeight:
-        'bold',
-
+        '700',
       textAlign:
         'center',
-
-      marginBottom:
-        5,
     },
 
 
     textoTeste: {
       fontSize:
-        12,
-
+        11,
       color:
-        '#888',
-
+        '#888888',
       textAlign:
         'center',
-
       lineHeight:
-        18,
+        17,
     },
 
 
     botaoVoltar: {
-      paddingVertical:
-        12,
-
+      minHeight:
+        43,
       alignItems:
         'center',
-
+      justifyContent:
+        'center',
+      flexDirection:
+        'row',
+      gap:
+        6,
       marginTop:
-        5,
+        6,
     },
 
 
     textoVoltar: {
       color:
-        '#666',
-
+        '#a2181c',
       fontSize:
         13,
-
       fontWeight:
-        '600',
+        '700',
     },
 
 
     cadastroEncontrado: {
       backgroundColor:
-        '#f7f7f7',
-
+        '#fff8f8',
       borderRadius:
-        10,
-
+        11,
       padding:
-        14,
-
+        13,
       marginBottom:
         18,
-
       borderWidth:
         1,
-
       borderColor:
-        '#e5e5e5',
+        '#eed5d6',
+      flexDirection:
+        'row',
+      alignItems:
+        'center',
+    },
+
+
+    cadastroIcone: {
+      width:
+        38,
+      height:
+        38,
+      borderRadius:
+        19,
+      backgroundColor:
+        '#f5dddd',
+      alignItems:
+        'center',
+      justifyContent:
+        'center',
+      marginRight:
+        11,
+    },
+
+
+    cadastroConteudo: {
+      flex: 1,
     },
 
 
     cadastroTitulo: {
       fontSize:
-        12,
-
+        11,
       fontWeight:
-        'bold',
-
+        '700',
       color:
         '#a2181c',
-
       marginBottom:
-        5,
+        3,
     },
 
 
     cadastroNome: {
       fontSize:
-        16,
-
+        15,
       fontWeight:
-        'bold',
-
+        '800',
       color:
-        '#222',
+        '#242424',
     },
 
 
     cadastroMatricula: {
       fontSize:
-        12,
-
+        11,
       color:
-        '#777',
-
+        '#777777',
       marginTop:
-        4,
+        3,
     },
 
   });
