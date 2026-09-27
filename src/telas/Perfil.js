@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   Alert,
@@ -13,167 +16,368 @@ import PerfilHeader from '../perfil/PerfilHeader';
 import InformacoesAcademicas from '../perfil/InformacoesAcademicas';
 import AlterarSenhaModal from '../perfil/AlterarSenhaModal';
 
-import { useAuth } from '../contexto/AuthContext';
+import {
+  useAuth,
+} from '../contexto/AuthContext';
 
-const STORAGE_KEY = '@uniapp_perfil';
+const STORAGE_KEY =
+  '@uniapp_perfil';
 
 const PERFIL_INICIAL = {
   nome: 'Richard Rodrigues',
   matricula: '202312084',
-  email: 'richard.rodrigues@aluno.edu.br',
-  curso: 'Engenharia de Software',
-  periodo: '7º período',
+  email:
+    'richard.rodrigues@aluno.edu.br',
+  curso:
+    'Engenharia de Software',
+  periodo:
+    '7º período',
   foto: null,
 };
 
 export default function PerfilScreen() {
-  const [perfil, setPerfil] =
-    useState(PERFIL_INICIAL);
+  const [
+    perfil,
+    setPerfil,
+  ] =
+    useState(
+      PERFIL_INICIAL
+    );
 
-  const [modalSenha, setModalSenha] =
-    useState(false);
+  const [
+    modalSenha,
+    setModalSenha,
+  ] =
+    useState(
+      false
+    );
 
-  const { trocarSenha } = useAuth();
-
-  useEffect(() => {
-    carregarPerfil();
-  }, []);
-
-  const carregarPerfil = async () => {
-    try {
-      const dados =
-        await AsyncStorage.getItem(
-          STORAGE_KEY
-        );
-
-      if (dados) {
-        setPerfil(
-          JSON.parse(dados)
-        );
-      }
-    } catch (error) {
-      Alert.alert(
-        'Erro',
-        'Não foi possível carregar o perfil.'
-      );
-    }
-  };
+  const {
+    trocarSenha,
+  } =
+    useAuth();
 
 
-  const alterarFoto = async () => {
-    try {
-      const permissao =
-        await ImagePicker
-          .requestMediaLibraryPermissionsAsync();
+  useEffect(
+    () => {
+      carregarPerfil();
+    },
+    []
+  );
 
-      if (!permissao.granted) {
+
+  const carregarPerfil =
+    async () => {
+
+      try {
+
+        const dados =
+          await AsyncStorage.getItem(
+            STORAGE_KEY
+          );
+
+
+        if (dados) {
+          setPerfil(
+            JSON.parse(
+              dados
+            )
+          );
+        }
+
+      } catch (error) {
+
         Alert.alert(
-          'Permissão necessária',
-          'Autorize o acesso à galeria para alterar sua foto.'
+          'Erro',
+          'Não foi possível carregar o perfil.'
         );
-
-        return;
       }
+    };
 
-      const resultado =
-        await ImagePicker
-          .launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-          });
 
-      if (resultado.canceled) {
-        return;
-      }
+  const salvarFoto =
+    async (
+      uri
+    ) => {
 
       const novoPerfil = {
         ...perfil,
-        foto:
-          resultado.assets[0].uri,
+        foto: uri,
       };
+
 
       await AsyncStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(novoPerfil)
+        JSON.stringify(
+          novoPerfil
+        )
       );
 
-      setPerfil(novoPerfil);
 
-    } catch (error) {
+      setPerfil(
+        novoPerfil
+      );
+    };
+
+
+  const escolherGaleria =
+    async () => {
+
+      try {
+
+        const permissao =
+          await ImagePicker
+            .requestMediaLibraryPermissionsAsync();
+
+
+        if (
+          !permissao.granted
+        ) {
+
+          Alert.alert(
+            'Permissão necessária',
+            'Autorize o acesso à galeria para alterar sua foto.'
+          );
+
+          return;
+        }
+
+
+        const resultado =
+          await ImagePicker
+            .launchImageLibraryAsync({
+              mediaTypes: [
+                'images',
+              ],
+              allowsEditing:
+                true,
+              aspect: [
+                1,
+                1,
+              ],
+              quality:
+                0.8,
+            });
+
+
+        if (
+          resultado.canceled
+        ) {
+          return;
+        }
+
+
+        await salvarFoto(
+          resultado.assets[0].uri
+        );
+
+      } catch (error) {
+
+        Alert.alert(
+          'Erro',
+          'Não foi possível selecionar a foto.'
+        );
+      }
+    };
+
+
+  const tirarFoto =
+    async () => {
+
+      try {
+
+        const permissao =
+          await ImagePicker
+            .requestCameraPermissionsAsync();
+
+
+        if (
+          !permissao.granted
+        ) {
+
+          Alert.alert(
+            'Permissão necessária',
+            'Autorize o acesso à câmera para tirar uma foto.'
+          );
+
+          return;
+        }
+
+
+        const resultado =
+          await ImagePicker
+            .launchCameraAsync({
+              mediaTypes: [
+                'images',
+              ],
+              allowsEditing:
+                true,
+              aspect: [
+                1,
+                1,
+              ],
+              quality:
+                0.8,
+            });
+
+
+        if (
+          resultado.canceled
+        ) {
+          return;
+        }
+
+
+        await salvarFoto(
+          resultado.assets[0].uri
+        );
+
+      } catch (error) {
+
+        Alert.alert(
+          'Erro',
+          'Não foi possível tirar a foto.'
+        );
+      }
+    };
+
+
+  const alterarFoto =
+    () => {
+
       Alert.alert(
-        'Erro',
-        'Não foi possível alterar a foto.'
+        'Alterar foto',
+        'Escolha como deseja atualizar sua foto de perfil.',
+        [
+          {
+            text:
+              'Câmera',
+            onPress:
+              tirarFoto,
+          },
+          {
+            text:
+              'Galeria',
+            onPress:
+              escolherGaleria,
+          },
+          {
+            text:
+              'Cancelar',
+            style:
+              'cancel',
+          },
+        ]
       );
-    }
-  };
+    };
 
 
-  const alterarSenha = async (
-    senhaAtual,
-    novaSenha
-  ) => {
-    const resultado =
-      await trocarSenha(
-        senhaAtual,
-        novaSenha
-      );
+  const alterarSenha =
+    async (
+      senhaAtual,
+      novaSenha
+    ) => {
 
-    if (resultado.ok) {
-      Alert.alert(
-        'Sucesso',
-        'Senha alterada com sucesso.'
-      );
-    }
+      const resultado =
+        await trocarSenha(
+          senhaAtual,
+          novaSenha
+        );
 
-    return resultado;
-  };
+
+      if (
+        resultado.ok
+      ) {
+
+        Alert.alert(
+          'Sucesso',
+          'Senha alterada com sucesso.'
+        );
+      }
+
+
+      return resultado;
+    };
 
 
   return (
     <>
       <ScrollView
-        style={styles.container}
+        style={
+          styles.container
+        }
+
         contentContainerStyle={
           styles.conteudo
         }
+
         showsVerticalScrollIndicator={
           false
         }
       >
-        <PerfilHeader
-          perfil={perfil}
-          onAlterarFoto={alterarFoto}
-        />
 
-        <InformacoesAcademicas
-          perfil={perfil}
-          onAlterarSenha={() =>
-            setModalSenha(true)
+        <PerfilHeader
+          perfil={
+            perfil
+          }
+
+          onAlterarFoto={
+            alterarFoto
           }
         />
+
+
+        <InformacoesAcademicas
+          perfil={
+            perfil
+          }
+
+          onAlterarSenha={
+            () =>
+              setModalSenha(
+                true
+              )
+          }
+        />
+
       </ScrollView>
 
+
       <AlterarSenhaModal
-        visible={modalSenha}
-        onClose={() =>
-          setModalSenha(false)
+        visible={
+          modalSenha
         }
-        onSalvar={alterarSenha}
+
+        onClose={
+          () =>
+            setModalSenha(
+              false
+            )
+        }
+
+        onSalvar={
+          alterarSenha
+        }
       />
+
     </>
   );
 }
 
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#edf1f4',
-  },
+const styles =
+  StyleSheet.create({
 
-  conteudo: {
-    paddingBottom: 25,
-  },
-});
+    container: {
+      flex: 1,
+      backgroundColor:
+        '#edf1f4',
+    },
+
+
+    conteudo: {
+      paddingBottom:
+        25,
+    },
+
+  });
