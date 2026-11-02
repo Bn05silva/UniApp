@@ -1,12 +1,18 @@
 {
-  "name": "backend",
+  "name": "uniclass-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API de tarefas do UniClass",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [],
+  "keywords": [
+    "uniclass",
+    "api",
+    "tasks",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

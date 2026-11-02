@@ -21,9 +21,17 @@ export async function sincronizarTarefas() {
       !conexao.ok
     ) {
       return {
-        ok: false,
-        online: false,
-        sincronizadas: 0,
+        ok:
+          false,
+
+        online:
+          false,
+
+        sincronizadas:
+          0,
+
+        erros:
+          0,
       };
     }
 
@@ -33,17 +41,29 @@ export async function sincronizarTarefas() {
 
 
     if (
-      pendentes.length === 0
+      pendentes.length ===
+      0
     ) {
       return {
-        ok: true,
-        online: true,
-        sincronizadas: 0,
+        ok:
+          true,
+
+        online:
+          true,
+
+        sincronizadas:
+          0,
+
+        erros:
+          0,
       };
     }
 
 
     let totalSincronizadas =
+      0;
+
+    let totalErros =
       0;
 
 
@@ -58,16 +78,76 @@ export async function sincronizarTarefas() {
           tarefa.remoteId
         ) {
 
-          await atualizarTarefaAPI(
-            tarefa.remoteId,
-            tarefa
-          );
+          try {
+
+            const tarefaRemota =
+              await atualizarTarefaAPI(
+                tarefa.remoteId,
+                tarefa
+              );
 
 
-          await marcarComoSincronizada(
-            tarefa.id,
-            tarefa.remoteId
-          );
+            const remoteId =
+              tarefaRemota?.id ||
+              tarefa.remoteId;
+
+
+            const marcada =
+              await marcarComoSincronizada(
+                tarefa.id,
+                remoteId
+              );
+
+
+            if (
+              !marcada
+            ) {
+              throw new Error(
+                'Não foi possível marcar a tarefa como sincronizada.'
+              );
+            }
+
+          } catch (error) {
+
+            if (
+              error.status !==
+              404
+            ) {
+              throw error;
+            }
+
+
+            const novaTarefaRemota =
+              await criarTarefaAPI(
+                tarefa
+              );
+
+
+            if (
+              !novaTarefaRemota ||
+              !novaTarefaRemota.id
+            ) {
+              throw new Error(
+                'A API não retornou o ID da tarefa.'
+              );
+            }
+
+
+            const marcada =
+              await marcarComoSincronizada(
+                tarefa.id,
+                novaTarefaRemota.id
+              );
+
+
+            if (
+              !marcada
+            ) {
+              throw new Error(
+                'Não foi possível atualizar o identificador remoto.'
+              );
+            }
+          }
 
         } else {
 
@@ -77,10 +157,30 @@ export async function sincronizarTarefas() {
             );
 
 
-          await marcarComoSincronizada(
-            tarefa.id,
-            tarefaRemota.id
-          );
+          if (
+            !tarefaRemota ||
+            !tarefaRemota.id
+          ) {
+            throw new Error(
+              'A API não retornou o ID da tarefa.'
+            );
+          }
+
+
+          const marcada =
+            await marcarComoSincronizada(
+              tarefa.id,
+              tarefaRemota.id
+            );
+
+
+          if (
+            !marcada
+          ) {
+            throw new Error(
+              'Não foi possível marcar a tarefa como sincronizada.'
+            );
+          }
         }
 
 
@@ -89,24 +189,41 @@ export async function sincronizarTarefas() {
 
       } catch (error) {
 
-        continue;
+        totalErros +=
+          1;
       }
     }
 
 
     return {
-      ok: true,
-      online: true,
+      ok:
+        totalErros ===
+        0,
+
+      online:
+        true,
+
       sincronizadas:
         totalSincronizadas,
+
+      erros:
+        totalErros,
     };
 
   } catch (error) {
 
     return {
-      ok: false,
-      online: false,
-      sincronizadas: 0,
+      ok:
+        false,
+
+      online:
+        false,
+
+      sincronizadas:
+        0,
+
+      erros:
+        0,
     };
   }
 }

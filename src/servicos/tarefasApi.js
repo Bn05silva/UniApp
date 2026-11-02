@@ -9,20 +9,35 @@ async function tratarResposta(
   let dados = null;
 
   try {
+
     dados =
       await resposta.json();
+
   } catch (error) {
+
     dados = null;
   }
+
 
   if (
     !resposta.ok
   ) {
-    throw new Error(
-      dados?.erro ||
-      'Erro ao acessar a API.'
-    );
+
+    const erro =
+      new Error(
+        dados?.erro ||
+        'Erro ao acessar a API.'
+      );
+
+    erro.status =
+      resposta.status;
+
+    erro.dados =
+      dados;
+
+    throw erro;
   }
+
 
   return dados;
 }
@@ -33,6 +48,22 @@ export async function listarTarefasAPI() {
     await fetch(
       `${API_URL}/tasks`
     );
+
+
+  return tratarResposta(
+    resposta
+  );
+}
+
+
+export async function buscarTarefaAPI(
+  remoteId
+) {
+  const resposta =
+    await fetch(
+      `${API_URL}/tasks/${remoteId}`
+    );
+
 
   return tratarResposta(
     resposta
@@ -79,6 +110,7 @@ export async function criarTarefaAPI(
           }),
       }
     );
+
 
   return tratarResposta(
     resposta
@@ -127,6 +159,7 @@ export async function atualizarTarefaAPI(
       }
     );
 
+
   return tratarResposta(
     resposta
   );
@@ -144,6 +177,21 @@ export async function removerTarefaAPI(
           'DELETE',
       }
     );
+
+
+  if (
+    resposta.status ===
+    404
+  ) {
+    return {
+      ok:
+        true,
+
+      inexistente:
+        true,
+    };
+  }
+
 
   return tratarResposta(
     resposta

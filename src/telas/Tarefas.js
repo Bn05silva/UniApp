@@ -35,8 +35,16 @@ import {
 } from '../servicos/sincronizacao';
 
 import {
+  sincronizarTarefasFirebase,
+} from '../servicos/sincronizacaoFirebase';
+
+import {
   removerTarefaAPI,
 } from '../servicos/tarefasApi';
+
+import {
+  removerTarefaFirebase,
+} from '../servicos/firebaseTarefas';
 
 
 export default function TarefasScreen() {
@@ -133,16 +141,24 @@ export default function TarefasScreen() {
         return;
       }
 
+
       try {
 
         setSincronizando(
           true
         );
 
-        const resultado =
+
+        const resultadoAPI =
           await sincronizarTarefas();
 
+
+        const resultadoFirebase =
+          await sincronizarTarefasFirebase();
+
+
         await carregarTarefas();
+
 
         if (
           !exibirMensagem
@@ -150,32 +166,74 @@ export default function TarefasScreen() {
           return;
         }
 
+
         if (
-          !resultado.online
+          !resultadoAPI.online &&
+          !resultadoFirebase.online
         ) {
 
           Alert.alert(
             'Modo offline',
-            'A API está indisponível. As tarefas continuam salvas no SQLite e poderão ser sincronizadas depois.'
+            'A API e o Firebase estão indisponíveis. As tarefas continuam salvas no SQLite.'
           );
 
           return;
         }
 
+
         if (
-          resultado.erros > 0
+          !resultadoAPI.online
         ) {
 
           Alert.alert(
             'Sincronização parcial',
-            `${resultado.sincronizadas} tarefa(s) sincronizada(s) e ${resultado.erros} com erro.`
+            'O Firebase está disponível, mas a API está indisponível.'
           );
 
           return;
         }
 
+
         if (
-          resultado.sincronizadas === 0
+          !resultadoFirebase.online
+        ) {
+
+          Alert.alert(
+            'Sincronização parcial',
+            'A API está disponível, mas o Firebase está indisponível.'
+          );
+
+          return;
+        }
+
+
+        const errosAPI =
+          resultadoAPI.erros ||
+          0;
+
+
+        const errosFirebase =
+          resultadoFirebase.erros ||
+          0;
+
+
+        if (
+          errosAPI > 0 ||
+          errosFirebase > 0
+        ) {
+
+          Alert.alert(
+            'Sincronização parcial',
+            `API: ${resultadoAPI.sincronizadas} sincronizada(s), ${errosAPI} erro(s).\nFirebase: ${resultadoFirebase.sincronizadas} sincronizada(s), ${errosFirebase} erro(s).`
+          );
+
+          return;
+        }
+
+
+        if (
+          resultadoAPI.sincronizadas === 0 &&
+          resultadoFirebase.sincronizadas === 0
         ) {
 
           Alert.alert(
@@ -186,9 +244,10 @@ export default function TarefasScreen() {
           return;
         }
 
+
         Alert.alert(
           'Sincronização concluída',
-          `${resultado.sincronizadas} tarefa(s) sincronizada(s) com sucesso.`
+          `API: ${resultadoAPI.sincronizadas} tarefa(s).\nFirebase: ${resultadoFirebase.sincronizadas} tarefa(s).`
         );
 
       } catch (error) {
@@ -199,7 +258,7 @@ export default function TarefasScreen() {
 
           Alert.alert(
             'Erro',
-            'Não foi possível sincronizar as tarefas.'
+            'Não foi possível concluir a sincronização.'
           );
         }
 
@@ -281,15 +340,18 @@ export default function TarefasScreen() {
       );
 
       setDescricao(
-        tarefa.descricao || ''
+        tarefa.descricao ||
+        ''
       );
 
       setDisciplina(
-        tarefa.disciplina || ''
+        tarefa.disciplina ||
+        ''
       );
 
       setDataEntrega(
-        tarefa.dataEntrega || ''
+        tarefa.dataEntrega ||
+        ''
       );
 
       setModalVisivel(
@@ -324,6 +386,7 @@ export default function TarefasScreen() {
         return;
       }
 
+
       try {
 
         if (
@@ -349,6 +412,7 @@ export default function TarefasScreen() {
             dataEntrega,
           });
         }
+
 
         fecharModal();
 
@@ -408,14 +472,18 @@ export default function TarefasScreen() {
           {
             text:
               'Cancelar',
+
             style:
               'cancel',
           },
+
           {
             text:
               'Excluir',
+
             style:
               'destructive',
+
             onPress:
               () =>
                 excluirTarefa(
@@ -448,16 +516,40 @@ export default function TarefasScreen() {
 
             Alert.alert(
               'API indisponível',
-              'Essa tarefa já está sincronizada e não foi possível removê-la do servidor. Tente novamente quando estiver online.'
+              'Não foi possível excluir a tarefa da API.'
             );
 
             return;
           }
         }
 
+
+        if (
+          tarefa.firebaseId
+        ) {
+
+          try {
+
+            await removerTarefaFirebase(
+              tarefa.firebaseId
+            );
+
+          } catch (error) {
+
+            Alert.alert(
+              'Firebase indisponível',
+              'Não foi possível excluir a tarefa do Firebase.'
+            );
+
+            return;
+          }
+        }
+
+
         await removerTarefa(
           tarefa.id
         );
+
 
         await carregarTarefas();
 
@@ -476,16 +568,30 @@ export default function TarefasScreen() {
       item,
     }) => {
 
-      const sincronizada =
+      const apiSincronizada =
         Boolean(
           item.sincronizado &&
           item.remoteId
         );
 
+
+      const firebaseSincronizada =
+        Boolean(
+          item.firebaseSincronizado &&
+          item.firebaseId
+        );
+
+
+      const sincronizada =
+        apiSincronizada &&
+        firebaseSincronizada;
+
+
       return (
         <View
           style={[
             styles.card,
+
             item.concluida &&
               styles.cardConcluido,
           ]}
@@ -500,9 +606,11 @@ export default function TarefasScreen() {
             <TouchableOpacity
               style={[
                 styles.statusBotao,
+
                 item.concluida &&
                   styles.statusBotaoAtivo,
               ]}
+
               onPress={
                 () =>
                   alternarStatus(
@@ -517,7 +625,9 @@ export default function TarefasScreen() {
                     ? 'checkmark'
                     : 'ellipse-outline'
                 }
+
                 size={20}
+
                 color={
                   item.concluida
                     ? '#ffffff'
@@ -537,6 +647,7 @@ export default function TarefasScreen() {
               <Text
                 style={[
                   styles.tituloTarefa,
+
                   item.concluida &&
                     styles.textoConcluido,
                 ]}
@@ -545,6 +656,7 @@ export default function TarefasScreen() {
                   item.titulo
                 }
               </Text>
+
 
               {
                 item.disciplina
@@ -569,6 +681,7 @@ export default function TarefasScreen() {
               style={
                 styles.acaoBotao
               }
+
               onPress={
                 () =>
                   abrirEdicao(
@@ -590,6 +703,7 @@ export default function TarefasScreen() {
               style={
                 styles.acaoBotao
               }
+
               onPress={
                 () =>
                   confirmarExclusao(
@@ -668,24 +782,34 @@ export default function TarefasScreen() {
             <View
               style={[
                 styles.sincronizacao,
+
                 sincronizada
                   ? styles.sincronizado
                   : styles.pendente,
               ]}
             >
 
-              <View
-                style={[
-                  styles.ponto,
+              <Ionicons
+                name={
                   sincronizada
-                    ? styles.pontoSincronizado
-                    : styles.pontoPendente,
-                ]}
+                    ? 'cloud-done-outline'
+                    : 'cloud-offline-outline'
+                }
+
+                size={13}
+
+                color={
+                  sincronizada
+                    ? '#218c4f'
+                    : '#a56b00'
+                }
               />
+
 
               <Text
                 style={[
                   styles.sincronizacaoTexto,
+
                   sincronizada
                     ? styles.textoSincronizado
                     : styles.textoPendente,
@@ -693,9 +817,83 @@ export default function TarefasScreen() {
               >
                 {
                   sincronizada
-                    ? 'Sincronizada'
+                    ? 'Online'
                     : 'Pendente'
                 }
+              </Text>
+
+            </View>
+
+          </View>
+
+
+          <View
+            style={
+              styles.servicos
+            }
+          >
+
+            <View
+              style={
+                styles.servico
+              }
+            >
+
+              <Ionicons
+                name={
+                  apiSincronizada
+                    ? 'checkmark-circle'
+                    : 'time-outline'
+                }
+
+                size={14}
+
+                color={
+                  apiSincronizada
+                    ? '#218c4f'
+                    : '#d68b00'
+                }
+              />
+
+              <Text
+                style={
+                  styles.servicoTexto
+                }
+              >
+                API
+              </Text>
+
+            </View>
+
+
+            <View
+              style={
+                styles.servico
+              }
+            >
+
+              <Ionicons
+                name={
+                  firebaseSincronizada
+                    ? 'checkmark-circle'
+                    : 'time-outline'
+                }
+
+                size={14}
+
+                color={
+                  firebaseSincronizada
+                    ? '#218c4f'
+                    : '#d68b00'
+                }
+              />
+
+              <Text
+                style={
+                  styles.servicoTexto
+                }
+              >
+                Firebase
               </Text>
 
             </View>
@@ -768,7 +966,7 @@ export default function TarefasScreen() {
               styles.subtituloPagina
             }
           >
-            Organize suas atividades acadêmicas
+            SQLite, API e Firebase
           </Text>
 
         </View>
@@ -784,9 +982,11 @@ export default function TarefasScreen() {
             style={
               styles.botaoSincronizar
             }
+
             disabled={
               sincronizando
             }
+
             onPress={
               () =>
                 executarSincronizacao(
@@ -805,8 +1005,8 @@ export default function TarefasScreen() {
                 )
                 : (
                   <Ionicons
-                    name="cloud-upload-outline"
-                    size={22}
+                    name="sync-outline"
+                    size={23}
                     color="#a2181c"
                   />
                 )
@@ -819,6 +1019,7 @@ export default function TarefasScreen() {
             style={
               styles.botaoAdicionar
             }
+
             onPress={
               abrirNovaTarefa
             }
@@ -841,6 +1042,7 @@ export default function TarefasScreen() {
         data={
           tarefas
         }
+
         keyExtractor={
           (
             item
@@ -849,17 +1051,21 @@ export default function TarefasScreen() {
               item.id
             )
         }
+
         renderItem={
           renderTarefa
         }
+
         contentContainerStyle={
           tarefas.length === 0
             ? styles.listaVaziaContainer
             : styles.lista
         }
+
         showsVerticalScrollIndicator={
           false
         }
+
         ListEmptyComponent={
           <View
             style={
@@ -902,6 +1108,7 @@ export default function TarefasScreen() {
               style={
                 styles.botaoPrimeiraTarefa
               }
+
               onPress={
                 abrirNovaTarefa
               }
@@ -932,8 +1139,11 @@ export default function TarefasScreen() {
         visible={
           modalVisivel
         }
+
         transparent
+
         animationType="slide"
+
         onRequestClose={
           fecharModal
         }
@@ -943,8 +1153,10 @@ export default function TarefasScreen() {
           style={
             styles.modalFundo
           }
+
           behavior={
-            Platform.OS === 'ios'
+            Platform.OS ===
+            'ios'
               ? 'padding'
               : 'height'
           }
@@ -1004,13 +1216,17 @@ export default function TarefasScreen() {
               style={
                 styles.input
               }
+
               value={
                 titulo
               }
+
               onChangeText={
                 setTitulo
               }
+
               placeholder="Ex: Trabalho de Segurança"
+
               placeholderTextColor="#aaaaaa"
             />
 
@@ -1027,13 +1243,17 @@ export default function TarefasScreen() {
               style={
                 styles.input
               }
+
               value={
                 disciplina
               }
+
               onChangeText={
                 setDisciplina
               }
+
               placeholder="Ex: Segurança e Auditoria"
+
               placeholderTextColor="#aaaaaa"
             />
 
@@ -1050,14 +1270,19 @@ export default function TarefasScreen() {
               style={
                 styles.input
               }
+
               value={
                 dataEntrega
               }
+
               onChangeText={
                 setDataEntrega
               }
+
               placeholder="Ex: 15/11/2026"
+
               placeholderTextColor="#aaaaaa"
+
               keyboardType="numbers-and-punctuation"
             />
 
@@ -1075,15 +1300,21 @@ export default function TarefasScreen() {
                 styles.input,
                 styles.inputDescricao,
               ]}
+
               value={
                 descricao
               }
+
               onChangeText={
                 setDescricao
               }
+
               placeholder="Detalhes da tarefa"
+
               placeholderTextColor="#aaaaaa"
+
               multiline
+
               textAlignVertical="top"
             />
 
@@ -1092,6 +1323,7 @@ export default function TarefasScreen() {
               style={
                 styles.botaoSalvar
               }
+
               onPress={
                 salvarTarefa
               }
@@ -1306,20 +1538,6 @@ const styles =
       backgroundColor: '#e9f7ee',
     },
 
-    ponto: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-    },
-
-    pontoPendente: {
-      backgroundColor: '#d68b00',
-    },
-
-    pontoSincronizado: {
-      backgroundColor: '#218c4f',
-    },
-
     sincronizacaoTexto: {
       fontSize: 10,
       fontWeight: '700',
@@ -1331,6 +1549,24 @@ const styles =
 
     textoSincronizado: {
       color: '#218c4f',
+    },
+
+    servicos: {
+      flexDirection: 'row',
+      gap: 14,
+      marginTop: 10,
+    },
+
+    servico: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+
+    servicoTexto: {
+      fontSize: 10,
+      color: '#777777',
+      fontWeight: '600',
     },
 
     carregando: {
