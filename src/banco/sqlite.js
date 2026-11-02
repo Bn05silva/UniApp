@@ -16,6 +16,59 @@ async function obterBanco() {
 }
 
 
+function estaSincronizada(
+  item
+) {
+  return (
+    item.sincronizado === 1 &&
+    item.remote_id !== null &&
+    item.remote_id !== undefined &&
+    String(
+      item.remote_id
+    ).trim() !== ''
+  );
+}
+
+
+function converterTarefa(
+  item
+) {
+  return {
+    id:
+      item.id,
+
+    remoteId:
+      item.remote_id,
+
+    titulo:
+      item.titulo,
+
+    descricao:
+      item.descricao,
+
+    disciplina:
+      item.disciplina,
+
+    dataEntrega:
+      item.data_entrega,
+
+    concluida:
+      item.concluida === 1,
+
+    sincronizado:
+      estaSincronizada(
+        item
+      ),
+
+    criadoEm:
+      item.criado_em,
+
+    atualizadoEm:
+      item.atualizado_em,
+  };
+}
+
+
 export async function inicializarBanco() {
   const db =
     await obterBanco();
@@ -35,6 +88,11 @@ export async function inicializarBanco() {
       criado_em TEXT NOT NULL,
       atualizado_em TEXT NOT NULL
     );
+
+    UPDATE tarefas
+    SET sincronizado = 0
+    WHERE remote_id IS NULL
+       OR TRIM(remote_id) = '';
   `);
 
   return true;
@@ -57,6 +115,7 @@ export async function criarTarefa({
     await db.runAsync(
       `
         INSERT INTO tarefas (
+          remote_id,
           titulo,
           descricao,
           disciplina,
@@ -66,9 +125,10 @@ export async function criarTarefa({
           criado_em,
           atualizado_em
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
+        null,
         titulo.trim(),
         descricao.trim(),
         disciplina.trim(),
@@ -83,19 +143,30 @@ export async function criarTarefa({
   return {
     id:
       resultado.lastInsertRowId,
+
+    remoteId:
+      null,
+
     titulo:
       titulo.trim(),
+
     descricao:
       descricao.trim(),
+
     disciplina:
       disciplina.trim(),
+
     dataEntrega,
+
     concluida:
       false,
+
     sincronizado:
       false,
+
     criadoEm:
       agora,
+
     atualizadoEm:
       agora,
   };
@@ -114,28 +185,7 @@ export async function listarTarefas() {
     `);
 
   return registros.map(
-    (item) => ({
-      id:
-        item.id,
-      remoteId:
-        item.remote_id,
-      titulo:
-        item.titulo,
-      descricao:
-        item.descricao,
-      disciplina:
-        item.disciplina,
-      dataEntrega:
-        item.data_entrega,
-      concluida:
-        item.concluida === 1,
-      sincronizado:
-        item.sincronizado === 1,
-      criadoEm:
-        item.criado_em,
-      atualizadoEm:
-        item.atualizado_em,
-    })
+    converterTarefa
   );
 }
 
@@ -162,28 +212,9 @@ export async function buscarTarefaPorId(
     return null;
   }
 
-  return {
-    id:
-      item.id,
-    remoteId:
-      item.remote_id,
-    titulo:
-      item.titulo,
-    descricao:
-      item.descricao,
-    disciplina:
-      item.disciplina,
-    dataEntrega:
-      item.data_entrega,
-    concluida:
-      item.concluida === 1,
-    sincronizado:
-      item.sincronizado === 1,
-    criadoEm:
-      item.criado_em,
-    atualizadoEm:
-      item.atualizado_em,
-  };
+  return converterTarefa(
+    item
+  );
 }
 
 
@@ -301,40 +332,31 @@ export async function listarPendentesSincronizacao() {
       SELECT *
       FROM tarefas
       WHERE sincronizado = 0
+         OR remote_id IS NULL
+         OR TRIM(remote_id) = ''
       ORDER BY criado_em ASC
     `);
 
   return registros.map(
-    (item) => ({
-      id:
-        item.id,
-      remoteId:
-        item.remote_id,
-      titulo:
-        item.titulo,
-      descricao:
-        item.descricao,
-      disciplina:
-        item.disciplina,
-      dataEntrega:
-        item.data_entrega,
-      concluida:
-        item.concluida === 1,
-      sincronizado:
-        false,
-      criadoEm:
-        item.criado_em,
-      atualizadoEm:
-        item.atualizado_em,
-    })
+    converterTarefa
   );
 }
 
 
 export async function marcarComoSincronizada(
   id,
-  remoteId = null
+  remoteId
 ) {
+  if (
+    remoteId === null ||
+    remoteId === undefined ||
+    String(
+      remoteId
+    ).trim() === ''
+  ) {
+    return false;
+  }
+
   const db =
     await obterBanco();
 
@@ -348,7 +370,9 @@ export async function marcarComoSincronizada(
         WHERE id = ?
       `,
       [
-        remoteId,
+        String(
+          remoteId
+        ),
         id,
       ]
     );
