@@ -31,6 +31,9 @@ import InicioScreen
 import PresencaScreen
   from './src/telas/Presenca';
 
+import TarefasScreen
+  from './src/telas/Tarefas';
+
 import MapaScreen
   from './src/telas/Mapa';
 
@@ -50,10 +53,6 @@ import HistoricoProfessorScreen
 const Tab =
   createBottomTabNavigator();
 
-
-// ======================================================
-// BOTÃO SAIR
-// ======================================================
 
 function BotaoSair() {
   const {
@@ -99,7 +98,8 @@ function BotaoSair() {
       }
 
       style={{
-        marginRight: 16,
+        marginRight:
+          16,
       }}
 
       accessibilityLabel="Sair"
@@ -107,18 +107,16 @@ function BotaoSair() {
 
       <Ionicons
         name="log-out-outline"
-        size={24}
-        color="#fff"
+        size={
+          24
+        }
+        color="#ffffff"
       />
 
     </TouchableOpacity>
   );
 }
 
-
-// ======================================================
-// ESTILO PADRÃO DO CABEÇALHO
-// ======================================================
 
 const estiloCabecalho = {
 
@@ -134,7 +132,7 @@ const estiloCabecalho = {
   },
 
   headerTintColor:
-    '#fff',
+    '#ffffff',
 
   headerTitleAlign:
     'center',
@@ -152,10 +150,6 @@ const estiloCabecalho = {
       <BotaoSair />,
 };
 
-
-// ======================================================
-// ABAS DO ALUNO
-// ======================================================
 
 function AbasAluno() {
   return (
@@ -188,6 +182,15 @@ function AbasAluno() {
 
             iconName =
               'scan-circle';
+
+
+          } else if (
+            route.name ===
+            'Tarefas'
+          ) {
+
+            iconName =
+              'checkbox';
 
 
           } else if (
@@ -227,6 +230,11 @@ function AbasAluno() {
         },
 
         ...estiloCabecalho,
+
+        tabBarLabelStyle: {
+          fontSize:
+            10,
+        },
       })}
     >
 
@@ -254,6 +262,26 @@ function AbasAluno() {
         options={{
           title:
             'Registrar presença',
+
+          tabBarLabel:
+            'Presença',
+        }}
+      />
+
+
+      <Tab.Screen
+        name="Tarefas"
+
+        component={
+          TarefasScreen
+        }
+
+        options={{
+          title:
+            'Tarefas Acadêmicas',
+
+          tabBarLabel:
+            'Tarefas',
         }}
       />
 
@@ -289,10 +317,6 @@ function AbasAluno() {
   );
 }
 
-
-// ======================================================
-// ABAS DO PROFESSOR
-// ======================================================
 
 function AbasProfessor() {
   return (
@@ -358,10 +382,6 @@ function AbasProfessor() {
       })}
     >
 
-      {/* ============================================== */}
-      {/* INÍCIO */}
-      {/* ============================================== */}
-
       <Tab.Screen
         name="InícioProfessor"
 
@@ -379,10 +399,6 @@ function AbasProfessor() {
       />
 
 
-      {/* ============================================== */}
-      {/* TURMAS */}
-      {/* ============================================== */}
-
       <Tab.Screen
         name="TurmasProfessor"
 
@@ -399,10 +415,6 @@ function AbasProfessor() {
         }}
       />
 
-
-      {/* ============================================== */}
-      {/* HISTÓRICO */}
-      {/* ============================================== */}
 
       <Tab.Screen
         name="HistoricoProfessor"
@@ -424,10 +436,6 @@ function AbasProfessor() {
   );
 }
 
-
-// ======================================================
-// ROTAS
-// ======================================================
 
 function Rotas() {
   const {
@@ -462,10 +470,6 @@ function Rotas() {
   );
 }
 
-
-// ======================================================
-// APP
-// ======================================================
 
 export default function App() {
   return (

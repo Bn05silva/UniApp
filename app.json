@@ -6,18 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#f1f4f6"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#a2181c"
-      },
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBJjy6lbgblXke9bJxdIsKI6H0ED0xbz1s"
